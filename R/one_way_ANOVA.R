@@ -1,28 +1,20 @@
-
-########################################
-#   One-Way test
-#     This script contains all the functions
-#     related to one way test. These allow to do the test (ANOVA or KS), run
-#     post hoc test, and plot the reults.
-########################################
-
-
-library(rstatix)
-library(ggpubr)
+# The following scripts contains all the functions required to run one-way ANOVA
+# and it's non-parametric equivalent.
 
 # Test functions
 ## One-way anova test function
 one_ANOVA <- function(d, treatment, variable, ANOVA_type = 2) {
   
   # Load vars
-  local_d <- copy(d)
+  . <- NULL
+  local_d <- data.table::copy(d)
   local_d[, id := 1:.N]
   formula_obj <- paste(variable, "~", treatment) %>%
-    formula(.)
+    formula
   # Run ANOVA
   out <- local_d %>%
     anova_test(formula_obj, data = .,wid ="id",  detailed = T, type = ANOVA_type) %>% 
-    get_anova_table(.,) %>%
+    get_anova_table(.) %>%
     data.table
   out[, method := "One-Way-ANOVA"]
   
@@ -92,13 +84,20 @@ post_hoc_kw <- function(d, treatment, variable, p.adjust.method = "bonferroni") 
 # Combined test function to take input from user
 one_way_test <- function(d, input) {
   
+  # Load variables
+  treatment <- input$treatment_aov
+  variable <- input$variable_aov
+  local_d <- copy(d)
+  local_d[, (treatment) := lapply(.SD, as.factor), 
+          .SDcols = treatment]
+  
   if (input$one_test == "One-Way-ANOVA") {
-    one_test <- one_ANOVA(d, treatment = input$treatment,variable =  input$variable, ANOVA_type = 2)
-    one_post_hoc <- post_hoc_aov(d, treatment = input$treatment,variable =  input$variable)
+    one_test <- one_ANOVA(local_d, treatment = treatment,variable =  variable, ANOVA_type = 2)
+    one_post_hoc <- post_hoc_aov(local_d, treatment = treatment,variable =  variable)
     
   } else {
-    one_test <- K_wallis(d, treatment = input$treatment, variable = input$variable)
-    one_post_hoc <- post_hoc_kw(d, treatment = input$treatment, variable = input$variable)
+    one_test <- K_wallis(local_d, treatment = treatment, variable = variable)
+    one_post_hoc <- post_hoc_kw(local_d, treatment = treatment, variable = variable)
     
   }
   
@@ -111,41 +110,43 @@ plot_one_way <- function(d,
                          variable, 
                          treatment,
                          post_hoc, 
-                         ref_group = NULL, 
-                         plot_type = "barplot", 
+                         ref.group = NULL, 
+                         plot_type, 
                          col_palette = "jco") {
   
   position <- d[, .(pos_y = max(.SD) + max(.SD) * .25), 
              by = treatment, 
              .SDcols = variable]
+  setorder(position, -pos_y)
+  position <- position[1:nrow(post_hoc)]
   
   if (plot_type == "barplot") {
-    ggpubr::ggbarplot(d, 
+    ggp <- ggpubr::ggbarplot(d, 
                       y = variable, 
                       x = treatment,
                       fill = treatment,
                       add = "mean_sd", 
                       palette = col_palette,
-                      ) +
-      stat_pvalue_manual(post_hoc, 
-                         y.position = position$pos_y,
-                         ref.group = ref_group, 
-                         abel = "p.adj.signif") +
-      theme_pubr()
+                      ) 
     
   } else {
-    ggpubr::ggboxplot(d, 
+    ggp <- ggpubr::ggboxplot(d, 
                       y = variable, 
                       x = treatment, 
                       fill = treatment,
-                      palette = col_palette) +
-      stat_pvalue_manual(post_hoc, 
-                         y.position = position$pos_y,
-                         ref.group = ref_group, 
-                         abel = "p.adj.signif") +
-      theme_pubr()
-    
+                      palette = col_palette) 
+
   }
+  ggp + stat_pvalue_manual(post_hoc, 
+                                 y.position = position$pos_y,
+                                 ref.group = ref.group, 
+                                 label = "p.adj.signif") +
+    theme_pubr()
     
   
 }
+#d <- data.table(iris)
+#input <- list(treatment_aov = "Species", variable_aov = "Sepal.Length", ref.group = NULL, plot_type = "barplot", one_test = "One-Way-ANOVA")
+#z <- one_way_test(d, input)
+#plot_one_comp_m(d, input, test_out = z[[2]])
+

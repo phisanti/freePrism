@@ -14,6 +14,29 @@ equal_sample <- function(x) {
   return(samples_vars == 1)
 }
 
+
+summary_table <- function(d, treatment){
+  
+  # Copy local data
+  local_d <- copy(d)
+  
+  # Summarise data
+  summ_d <- 
+    local_d[, .(
+      variable = colnames(local_d[, .SD, .SDcols = is.numeric]),
+      N = lapply(.SD, length),
+      Mean = lapply(.SD, mean, na.rm=TRUE),
+      Median = lapply(.SD, median, na.rm=TRUE),
+      Var = lapply(.SD, var, na.rm=TRUE),
+      IQR = lapply(.SD, IQR, na.rm=TRUE)
+      
+    ), 
+    by = treatment, 
+    .SDcols = is.numeric]
+  
+  return(summ_d)
+}
+
 ########################################
 # 0. Normality check via Shapiro-Wilk Normality Test
 #    return p value
@@ -21,16 +44,15 @@ equal_sample <- function(x) {
 #    render: DT
 ########################################
 
-df_sw_test <- shiny::reactive({
-  d <- data.table(iris)
-  sw <- d[, lapply(.SD, FUN = shapiro.test), .SDcols = is.numeric][1:2,]
-  
-  return(sw)
-})
+# df_sw_test <- shiny::reactive({
+#   d <- data.table(iris)
+#   sw <- d[, lapply(.SD, FUN = shapiro.test), .SDcols = is.numeric][1:2,]
+#   
+#   return(sw)
+# })
 
-df_sw_test <- function(d = NULL){
-  if (is.null(d)) {d <- data.table(iris)}
-  sw <- d[, lapply(.SD, FUN = shapiro.test), .SDcols = is.numeric][1:2,]
+df_sw_test <- function(d){
+ # if (is.null(d)) {d <- data.table(iris)}
   
   return(sw)
 }
@@ -44,24 +66,28 @@ df_sw_test <- function(d = NULL){
 #    render: DT
 ########################################
 
-# Original version
-dist_detect <- reactive({
-  
-  cutoff <- input$x
-  dcheck <- df_sw_test()
-  
-  dcheck <- t(dcheck)
-  dcheck <- data.table(dcheck, keep.rownames = T)
-  setnames(dcheck, c('rn', 'V1', 'V2'), c('Variable', 'W-stat', 'p_val'))
-  dcheck[, data_dist := fifelse(p_val > cutoff, 'norm', 'non-norm')]
-  
-  return(dcheck)
-})
+# # Original version
+# dist_detect <- reactive({
+#   
+#   cutoff <- input$x
+#   dcheck <- df_sw_test()
+#   
+#   dcheck <- t(dcheck)
+#   dcheck <- data.table(dcheck, keep.rownames = T)
+#   setnames(dcheck, c('rn', 'V1', 'V2'), c('Variable', 'W-stat', 'p_val'))
+#   dcheck[, data_dist := fifelse(p_val > cutoff, 'norm', 'non-norm')]
+#   
+#   return(dcheck)
+# })
 
 # Alternative writing of the same function
 dist_detect <- function(d, cutoff = .05){
   
-  dcheck <- df_sw_test(d)
+  # Copy local data
+  local_d <- copy(d)
+  
+  dcheck <- local_d[, lapply(.SD, FUN = shapiro.test), 
+                    .SDcols = is.numeric][1:2,]
   dcheck <- t(dcheck)
   dcheck <- data.table(dcheck, keep.rownames = T)
   setnames(dcheck, c('rn', 'V1', 'V2'), c('Variable', 'W-stat', 'p_val'))
@@ -189,13 +215,11 @@ ggplot_hist <- function(d, treatment, group = NULL) {
   if (is.null(group)) {
     ggplot(melt_d, aes(x = value)) +
       geom_histogram(fill = "cornflowerblue") +
-      facet_wrap(variable ~ ., scales = "free") +
-      theme_classic()
+      facet_wrap(variable ~ ., scales = "free") 
   } else if (group_is_correct) {
     ggplot(melt_d, aes(x = value)) +
       geom_histogram(aes(fill = get(group))) +
-      facet_wrap(variable, scales = "free") +
-      theme_classic()
+      facet_wrap(variable, scales = "free") 
     
   } else {
     
@@ -230,8 +254,7 @@ ggplot_qq <- function(d, treatment) {
     stat_qq_line() +
     facet_wrap(variable ~ .,
                scales = "free"
-    ) +
-    theme_classic()
+    ) 
 }
 
 ########################################

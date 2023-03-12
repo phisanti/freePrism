@@ -24,7 +24,10 @@ get_aov_data <- function(aov_summary) {
 #    render: DT - with Buttons
 ########################################
 
-compare_ls <- function(d, dist_table, treatment, var_method) {
+compare_ls <- function(d, 
+                       treatment, 
+                       dist_table, 
+                       man_var_method = NULL) {
   
   # Load vars
   local_dist <- copy(dist_table)
@@ -61,7 +64,11 @@ compare_ls <- function(d, dist_table, treatment, var_method) {
     
     # Get var and method
     var_name <- local_dist[i, Variable]
-    var_method <- local_dist[i, Method]
+    if (is.null(man_var_method)) {
+      var_method <- local_dist[i, Method]
+    } else {
+      var_method <- man_var_method
+    }
     
     # Get data
     var_data <- local_d[, var_name, with = FALSE] %>% 
