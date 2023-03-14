@@ -90,7 +90,7 @@ ui <- shinyUI(
                             selectInput("variable_aov", "Select a variable:", 
                                         choices = "")),
                      column(3,
-                            selectInput("treatment_aov", selected = 'Species',
+                            selectInput("treatment_aov", selected = '',
                                         "Select a target variable:", 
                                         choices = "")),
                      column(3,
@@ -105,6 +105,45 @@ ui <- shinyUI(
                    plotOutput("one_way_plot"),
                    DTOutput("one_way_post"),
                    downloadButton("dl_gg", label = "Download Figure"),
+          ),
+          tabPanel("Linear Regression",
+                   fluidRow(
+                     column(3,
+                            selectInput("variable_lm", "Select a variable:", 
+                                        choices = "")),
+                     column(3,
+                            selectInput("treatment_lm", selected = '',
+                                        "Select a target variable:", 
+                                        multiple = TRUE,
+                                        choices = "")),
+                     column(3, 
+                            numericInput(inputId = "cilevel", 
+                                         label = "Select Conf. Interval: ", 
+                                         min = 0.01, 
+                                         max = .99, 
+                                         value = .95)
+                            )
+                   ),
+                   htmlOutput("lm_summary"),
+                   plotOutput("lm_coefs"),
+                   
+                   "Linear Regression",
+                   fluidRow(
+                     column(3,
+                            selectInput("xvar", "Select the X variable:", 
+                                        choices = "")),
+                     column(3,
+                            selectInput("yvar", selected = '',
+                                        "Select the y variable:", 
+                                        choices = "")),
+                     column(3,
+                            selectInput("colvar", selected = '',
+                                        "Select a colouring variable:", 
+                                        choices = "")),
+                     plotOutput("lm_pred"),
+                     
+                   
+                   ),
           )
           
         )
@@ -152,8 +191,9 @@ server <- function(input, output, session) {
                  plot_type = input$plot_type_ow, 
                  col_palette = "jco")
   )
-  
-    
+  # Linear regression
+  react_lm <- reactive(reg_test(d(), input))
+  react_lm_plots <- reactive(ggplot_lm(d(), react_lm()$model, input))
   ##### RENDER #####
   # Render content Exploratory Analysis
   output$table <- renderDT(d())
@@ -167,8 +207,6 @@ server <- function(input, output, session) {
   output$qq_plot <- renderPlot({
     req(input$treatment %in% colnames(d()))
     react_qq_plot()})
-  
-  
   
   # Render mean comparison
   output$comp_means_table <- renderDT({
@@ -196,7 +234,13 @@ server <- function(input, output, session) {
     react_one_way_plot()
   })
   
-  
+  # Render LM
+  output$lm_summary <- renderUI(HTML({
+    req(input$treatment_lm != "" & input$treatment_lm != input$variable_lm)
+    
+    react_lm()$htmlout}))
+  output$lm_coefs <- renderPlot(react_lm_plots()$ggp1)
+  output$lm_pred <- renderPlot(react_lm_plots()$ggp2)
   
   observe({
     updateSelectInput(session, 
@@ -226,7 +270,32 @@ server <- function(input, output, session) {
                       "Select target variable", 
                       selected = colnames(d()[, .SD, .SDcols = is.numeric]), 
                       choices = colnames(d()))
-    
+
+    updateSelectInput(session, 
+                      "treatment_lm", 
+                      "Select groups to compare", 
+                      selected = "",
+                      choices = colnames(d()))
+    updateSelectInput(session, 
+                      "variable_lm", 
+                      "Select target variable", 
+                      selected = colnames(d()[, .SD, .SDcols = is.numeric]), 
+                      choices = colnames(d()))
+
+    updateSelectInput(session, 
+                      "xvar", 
+                      selected = "",
+                      choices = colnames(d()))
+    updateSelectInput(session, 
+                      "yvar", 
+                      selected = colnames(d()[, .SD, .SDcols = is.numeric]), 
+                      choices = colnames(d()))
+    updateSelectInput(session, 
+                      "colvar", 
+                      selected = "",
+                      choices = c("", colnames(d()))
+                      )
+
     updateSelectInput(session,
       "df_upload_file",
       selected = input$df_upload_file$datapath)
