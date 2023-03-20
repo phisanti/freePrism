@@ -6,10 +6,6 @@
 #     post hoc test, and plot the reults.
 ########################################
 
-
-#library(rstatix)
-#library(ggpubr)
-
 # Test functions
 ## T-test function
 my_t_test <- function(d,
@@ -86,7 +82,7 @@ my_w_test <- function(d,
 
 comp_means_test <- function(d, input){
   
-  treatment <- input$treatment_means
+  treatment <- input$treatment
   variable <- input$variable
   paired <- input$paired
   ref.group = input$ref.group
@@ -123,7 +119,7 @@ plot_one_comp_m <- function(d,
   
   # Load variables
   local_d <- copy(d)
-  treatment <- input$treatment_means
+  treatment <- input$treatment
   variable <- input$variable
   ref.group = input$ref.group
   plot_type = input$plot_type 

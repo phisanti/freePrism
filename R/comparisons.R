@@ -219,27 +219,6 @@ compare_mult_gr <- function(d, dist_table, treatment, var_method) {
 #    render: DT - with Buttons
 ########################################
 
-summary_table <- function(d, treatment){
-  
-  # Copy local data
-  local_d <- copy(d)
-  
-  # Summarise data
-  summ_d <- 
-    local_d[, .(
-              variable = colnames(local_d[, .SD, .SDcols = is.numeric]),
-              N = lapply(.SD, length),
-              Mean = lapply(.SD, mean, na.rm=TRUE),
-              Median = lapply(.SD, median, na.rm=TRUE),
-              Var = lapply(.SD, var, na.rm=TRUE),
-              IQR = lapply(.SD, IQR, na.rm=TRUE)
-              
-              ), 
-              by = treatment, 
-              .SDcols = is.numeric]
-  
-  return(summ_d)
-}
 
 ########################################
 # 2. Post-Hoc Tests

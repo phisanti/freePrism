@@ -1,4 +1,24 @@
-
+library(shiny)
+library(data.table)
+library(magrittr)
+library(DT)
+library(ggplot2)
+library(import)
+library(ragg)
+library(systemfonts)
+library(ggpubr)
+library(rstatix)
+library(shinyvalidate)
+source('R/data_reader.R')
+source('R/stat_checks.R')
+source('R/compare_means.R')
+source('R/compare_means_ui.R')
+source('R/one_way_ANOVA.R')
+source('R/one_way_ANOVA_ui.R')
+source('R/linear_reg.R')
+source('R/linear_reg_ui.R')
+source('R/two_way_ANOVA.R')
+source('R/two_way_ANOVA_ui.R')
 ui <- shinyUI(
   #### Create User Interface
   fluidPage(
@@ -31,15 +51,42 @@ ui <- shinyUI(
             accept = ".csv"
           )
         ),
+        # Add conditional panels for each type of analysis
+        conditionalPanel(
+          condition = "input.tabs == 'Exploratory Analysis'",
+          ""
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'Compare means'",
+          Compare_means_ui
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'One-way ANOVA'",
+          one_way_ANOVA_ui
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'Two-way-ANOVA'",
+          two_way_ANOVA_ui
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'Linear Regression'",
+          lin_reg_ui
+        ),
         textInput("is_perm", "is_perm", "No"),
         selectInput("treatment", "treatment", 
                     choices = ""),
-      ),
+        selectInput("variable", "Select target variable", 
+                     choices = ""),
+        actionButton("run_analysis", "Run Analysis")
+        ),
       
       # Main panels
       mainPanel(
-        tabsetPanel(
+        tabsetPanel(id = 'tabs',
+                    select_test_ui,
+
           tabPanel("Exploratory Analysis", 
+                   id = "explore",
                    DTOutput("table"),
                    DTOutput("summ"),
                    DTOutput('dist_tbl'),
@@ -48,35 +95,6 @@ ui <- shinyUI(
                    
           ),
           tabPanel("Compare means", 
-                   
-                   fluidRow(
-                     column(3,
-                            selectInput("treatment_means", "Select groups to compare", 
-                                        choices = ""),
-                            selectInput("variable", "Select target variable", 
-                                        choices = ""),
-                            
-                            selectInput("ref_group", "Select a control group:", 
-                                        choices = NULL)),
-                     column(3,
-                            selectInput("var_equal", selected = TRUE,
-                                        "Are variances equal:", 
-                                        choices = c(TRUE, FALSE))),
-                     column(3,
-                            selectInput("paired", selected = FALSE,
-                                        "Is the test paired:", 
-                                        choices = c(TRUE, FALSE))),
-                     column(3,
-                            selectInput("mean_test", 
-                                        "Select a test:", 
-                                        choices = c("T-test",
-                                                    "Wilcox-test"))),
-                     column(3,
-                            selectInput("alt_h", 
-                                        "Select a test:", 
-                                        choices = c("two.sided", "less", "greater")))
-                     
-                   ),
                    DTOutput("comp_means_table"),
                    
                    selectInput("plot_type", "Select a Plot type:", 
@@ -84,21 +102,7 @@ ui <- shinyUI(
                    plotOutput("com_m_plot")
           ),
           
-          tabPanel("One-way testing",
-                   fluidRow(
-                     column(3,
-                            selectInput("variable_aov", "Select a variable:", 
-                                        choices = "")),
-                     column(3,
-                            selectInput("treatment_aov", selected = '',
-                                        "Select a target variable:", 
-                                        choices = "")),
-                     column(3,
-                            selectInput("one_test", 
-                                        "Select a test:", 
-                                        choices = c("One-Way-ANOVA",
-                                                    "Kruskall-Wallis")))
-                   ),
+          tabPanel("One-way ANOVA",
                    DTOutput("one_way_test"),
                    selectInput("plot_type_ow", "Select a Plot type:", 
                                choices = c("barplot", "boxplot")), 
@@ -106,27 +110,12 @@ ui <- shinyUI(
                    DTOutput("one_way_post"),
                    downloadButton("dl_gg", label = "Download Figure"),
           ),
-          tabPanel("Linear Regression",
-                   fluidRow(
-                     column(3,
-                            selectInput("variable_lm", "Select a variable:", 
-                                        choices = "")),
-                     column(3,
-                            selectInput("treatment_lm", selected = '',
-                                        "Select a target variable:", 
-                                        multiple = TRUE,
-                                        choices = "")),
-                     column(3, 
-                            numericInput(inputId = "cilevel", 
-                                         label = "Select Conf. Interval: ", 
-                                         min = 0.01, 
-                                         max = .99, 
-                                         value = .95)
-                            )
+          tabPanel("Two-way-ANOVA",
+                   tableOutput("two_way_DT")
                    ),
-                   htmlOutput("lm_summary"),
-                   plotOutput("lm_coefs"),
-                   
+          tabPanel("Linear Regression",
+                   fluidRow(column(6, htmlOutput("lm_summary")),
+                            column(6,plotOutput("lm_coefs"))),
                    "Linear Regression",
                    fluidRow(
                      column(3,
@@ -139,13 +128,9 @@ ui <- shinyUI(
                      column(3,
                             selectInput("colvar", selected = '',
                                         "Select a colouring variable:", 
-                                        choices = "")),
+                                        choices = ""))),
                      plotOutput("lm_pred"),
-                     
-                   
-                   ),
           )
-          
         )
       )
     )
@@ -171,113 +156,124 @@ server <- function(input, output, session) {
     )
   
   # React exploratory analysis
-  react_dist_tbl <- reactive(dist_detect(d(), 0.05))
-  react_hist_plot <-  reactive(ggplot_hist(d(), input$treatment))
-  react_qq_plot <- reactive(ggplot_qq(d(),input$treatment))
-  react_summ <- reactive(summary_table(d(), input$treatment))
+  react_explore <- eventReactive(input$run_analysis,{
+    react_dist_tbl <- dist_detect(d(), 0.05)
+    react_summ <- summary_table(d(), input$treatment)
+    react_hist_plot <-  ggplot_hist(d(), input$treatment)
+    react_qq_plot <- ggplot_qq(d(),input$treatment)
+    
+    list(react_summ,
+         react_dist_tbl,
+         react_hist_plot,
+         react_qq_plot
+         )
+  })
+  react_two_sample <- eventReactive(input$run_analysis,{
+    
+  comp_means <- comp_means_test(d(), input)
+  com_means_plot <- plot_one_comp_m(d(), input, comp_means)
   
-  # React mean comparison 
-  react_comp_means <- reactive(comp_means_test(d(), input))
-  react_com_m_plot <- reactive(plot_one_comp_m(d(), input, react_comp_means()))
-  
+  list(comp_means, com_means_plot)
+  })
   # React ANOVA-one-way comparison 
-  react_one_way <- reactive(one_way_test(d(), input))
-  react_one_way_plot <- reactive(
+  react_one_way <- eventReactive(input$run_analysis,{
+  one_way_test <- one_way_test(d(), input)
+  one_way_plot <- 
     plot_one_way(d(),
-                 variable = input$variable_aov, 
-                 treatment = input$treatment_aov,
-                 post_hoc = react_one_way()[[2]], 
+                 variable = input$variable, 
+                 treatment = input$treatment,
+                 post_hoc = one_way_test[[2]], 
                  ref.group = NULL, 
                  plot_type = input$plot_type_ow, 
                  col_palette = "jco")
-  )
-  # Linear regression
-  react_lm <- reactive(reg_test(d(), input))
-  react_lm_plots <- reactive(ggplot_lm(d(), react_lm()$model, input))
+  list(one_way_test[[1]], one_way_test[[2]], one_way_plot)
+  })
+  # React Two-way ANOVA
+  react_two_way <- eventReactive(input$run_analysis, {
+
+    two_ANOVA <- two_ANOVA(d(), 
+                           input$treatment, 
+                           input$variable, 
+                           input$parametric, 
+                           ANOVA_type = 2) 
+    print(two_ANOVA)
+    list(two_ANOVA)
+  })
+  
+  # React Linear regression
+  react_lm <- eventReactive(input$run_analysis,{
+    
+  lm_test <- reg_test(d(), input)
+  lm_plots <- ggplot_lm(d(), lm_test$model, input)
+  list(lm_test$model, lm_test$htmlout, lm_plots[[1]], lm_plots[[2]])
+  })
   ##### RENDER #####
   # Render content Exploratory Analysis
   output$table <- renderDT(d())
-  output$summ <- renderDT(react_summ())
+  output$summ <- renderDT( react_explore()[[1]])
   
-  output$dist_tbl <- renderDT(react_dist_tbl())
+  output$dist_tbl <- renderDT(react_explore()[[2]])
   output$hist_plot <- renderPlot({
     req(input$treatment %in% colnames(d()))
-    react_hist_plot()
+    react_explore()[[3]]#react_hist_plot()
     })
   output$qq_plot <- renderPlot({
     req(input$treatment %in% colnames(d()))
-    react_qq_plot()})
+    react_explore()[[4]]#react_qq_plot()
+    })
   
   # Render mean comparison
   output$comp_means_table <- renderDT({
-    req(input$treatment_means != "" & input$treatment_means != input$variable)
-    react_comp_means()
+    req(input$treatment != "" & input$treatment != input$variable)
+    react_two_sample()[[1]]#react_comp_means()
     })
   output$com_m_plot <- renderPlot({
-    req(input$treatment_means != "" & input$treatment_means != input$variable)
-    react_com_m_plot()
+    req(input$treatment != "" & input$treatment != input$variable)
+    react_two_sample()[[2]]
     })
   
   # Render ANOVA-one-way
   output$one_way_test <- renderDT({
-    req(input$treatment_aov != "" & input$treatment_aov != input$variable_aov)
+    req(input$treatment != "" & input$treatment != input$variable)
     
     react_one_way()[[1]]
 })
   output$one_way_post <- renderDT({
-    req(input$treatment_aov != "" & input$treatment_aov != input$variable_aov)
+    req(input$treatment != "" & input$treatment != input$variable)
     
     react_one_way()[[2]]
 })
   output$one_way_plot <- renderPlot({
-    req(input$treatment_aov != "" & input$treatment_aov != input$variable_aov)
-    react_one_way_plot()
+    req(input$treatment != "" & input$treatment != input$variable)
+    react_one_way()[[3]]
   })
-  
+  # Render Two-way ANOVA
+  output$two_way_DT <- renderTable({
+    req(input$treatment != "" & input$treatment != input$variable)
+    react_two_way()[[1]]
+  })
   # Render LM
   output$lm_summary <- renderUI(HTML({
-    req(input$treatment_lm != "" & input$treatment_lm != input$variable_lm)
+    req(input$treatment != "" & input$treatment != input$variable)
     
-    react_lm()$htmlout}))
-  output$lm_coefs <- renderPlot(react_lm_plots()$ggp1)
-  output$lm_pred <- renderPlot(react_lm_plots()$ggp2)
+    react_lm()[[2]]}))
+  output$lm_coefs <- renderPlot(react_lm()[[3]])
+  output$lm_pred <- renderPlot(react_lm()[[4]])
   
   observe({
-    updateSelectInput(session, 
+    if (input$tabs %in% c("Linear Regression", "Two-way-ANOVA")) {
+      multiple_choice <- ncol(d()) -1
+    } else {
+      multiple_choice <- 1
+    }
+    updateSelectizeInput(session, 
                       "treatment", 
-                      "Select treatment", 
+                      "Select treatment",
+                      options = list(maxItems = multiple_choice),
                       choices = colnames(d()))
     
-    updateSelectInput(session, 
-                      "treatment_means", 
-                      "Select groups to compare", 
-                      selected = colnames(d()[, .SD, .SDcols = is.character]),
-                      choices = colnames(d()))
     updateSelectInput(session, 
                       "variable", 
-                      "Select target variable", 
-                      selected = colnames(d()[, .SD, .SDcols = is.numeric]), 
-                      choices = colnames(d()))
-    
-    
-    updateSelectInput(session, 
-                      "treatment_aov", 
-                      "Select groups to compare", 
-                      selected = colnames(d()[, .SD, .SDcols = is.character]),
-                      choices = colnames(d()))
-    updateSelectInput(session, 
-                      "variable_aov", 
-                      "Select target variable", 
-                      selected = colnames(d()[, .SD, .SDcols = is.numeric]), 
-                      choices = colnames(d()))
-
-    updateSelectInput(session, 
-                      "treatment_lm", 
-                      "Select groups to compare", 
-                      selected = "",
-                      choices = colnames(d()))
-    updateSelectInput(session, 
-                      "variable_lm", 
                       "Select target variable", 
                       selected = colnames(d()[, .SD, .SDcols = is.numeric]), 
                       choices = colnames(d()))

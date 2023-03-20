@@ -57,7 +57,7 @@ post_hoc_aov <- function(d, treatment, variable, p.adjust.method = "bonferroni")
   
   # Run test
   out <- aov(formula_obj, data = local_d) %>% 
-    tukey_hsd(., p.adjust.method = ) %>% 
+    tukey_hsd(., p.adjust.method = p.adjust.method) %>% 
     data.table
   
   return(out)
@@ -85,8 +85,8 @@ post_hoc_kw <- function(d, treatment, variable, p.adjust.method = "bonferroni") 
 one_way_test <- function(d, input) {
   
   # Load variables
-  treatment <- input$treatment_aov
-  variable <- input$variable_aov
+  treatment <- input$treatment
+  variable <- input$variable
   local_d <- copy(d)
   local_d[, (treatment) := lapply(.SD, as.factor), 
           .SDcols = treatment]

@@ -20,8 +20,8 @@ reg_test <- function(d, input) {
   
   # Load vars
   local_d <- copy(d)
-  variable_y <- input$variable_lm
-  variable_x <- input$treatment_lm # Note, that here, this can be more than one
+  variable_y <- input$variable
+  variable_x <- input$treatment # Note, that here, this can be more than one
   ci_level <- input$cilevel
   
   local_d <- data.table::copy(d)
@@ -101,4 +101,4 @@ ggplot_lm <- function(d, model, input) {
 
   return(list(ggp1 = ggp1, ggp2 = ggp2))
 }
-ggplot_lm(d, model, input)
+#ggplot_lm(d, model, input)
