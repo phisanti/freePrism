@@ -158,11 +158,5 @@ plot_one_comp_m <- function(d,
                         # ref.group = ref.group, 
                          abel = "p") +
       theme_pubr()
-    
-  
-  
 }
-#input <- list(treatment = "Species", mean_test = "Wilcox-test", paired = F, variable = "Sepal.Length", ref.group = NULL, plot_type = "barplot")
-#z <- comp_means_test(d, input)
-#plot_one_comp_m(d, input, test_out = z)
 
