@@ -4,24 +4,125 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @noRd
-app_ui <- function(request) {
-  tagList(
-    # Leave this function for adding external resources
-    golem_add_external_resources(),
-    # Your application UI logic
-    fluidPage(
-      theme = shinythemes::shinytheme("flatly"),
-      titlePanel("Free-Prism"),
-      sidebarLayout(
-        mod_sidebar_ui("mod_sidebar_ui"),
-        mainPanel(tabsetPanel(
-          mod_explore_ui("explore_1")
-        ))
 
+app_ui <- shinyUI(
+  #### Create User Interface
+  fluidPage(
+    # Load theme and heading
+    theme = shinythemes::shinytheme("flatly"),
+    titlePanel("Free-Prism"),
+    # Side panel
+    sidebarLayout(
+      sidebarPanel(
+        
+        radioButtons(
+          "data_source", "Upload files or try the demo",
+          choices = c(
+            "Upload files" = "file",
+            "Iris Data (Demo1)" = "demo-iris",
+            "ToothGrowth Data (Demo2)" = "demo-tooth"
+          ),
+          selected = "demo-tooth"
+        ),
+        helpText(
+          a(href = "https://archive.ics.uci.edu/ml/datasets/iris", "Iris Data Set"),
+          tags$br(),
+          a(href = "https://academic.oup.com/jn/article-abstract/33/5/491/4726758?redirectedFrom=fulltext", "ToothGrowth Data Set")
+        ),
+        conditionalPanel(
+          condition = "input.data_source == 'file'",
+          fileInput(
+            inputId = "df_upload_file",
+            label = NULL,
+            accept = ".csv"
+          )
+        ),
+        # Add conditional panels for each type of analysis
+        conditionalPanel(
+          condition = "input.tabs == 'Exploratory Analysis'",
+          ""
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'Compare means'",
+          Compare_means_ui
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'One-way ANOVA'",
+          one_way_ANOVA_ui
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'Two-way-ANOVA'",
+          two_way_ANOVA_ui
+        ),
+        conditionalPanel(
+          condition = "input.tabs == 'Linear Regression'",
+          lin_reg_ui
+        ),
+        textInput("is_perm", "is_perm", "No"),
+        selectInput("treatment", "treatment", 
+                    choices = ""),
+        selectInput("variable", "Select target variable", 
+                    choices = ""),
+        actionButton("run_analysis", "Run Analysis")
       ),
+      
+      # Main panels
+      mainPanel(
+        tabsetPanel(id = 'tabs',
+                    select_test_ui,
+                    
+                    tabPanel("Exploratory Analysis", 
+                             id = "explore",
+                             DTOutput("table"),
+                             DTOutput("summ"),
+                             DTOutput('dist_tbl'),
+                             plotOutput("hist_plot"),
+                             plotOutput("qq_plot")
+                             
+                    ),
+                    tabPanel("Compare means", 
+                             DTOutput("comp_means_table"),
+                             
+                             selectInput("plot_type", "Select a Plot type:", 
+                                         choices = c("barplot", "boxplot")), 
+                             plotOutput("com_m_plot")
+                    ),
+                    
+                    tabPanel("One-way ANOVA",
+                             DTOutput("one_way_test"),
+                             selectInput("plot_type_ow", "Select a Plot type:", 
+                                         choices = c("barplot", "boxplot")), 
+                             plotOutput("one_way_plot"),
+                             DTOutput("one_way_post"),
+                             downloadButton("dl_gg", label = "Download Figure"),
+                    ),
+                    tabPanel("Two-way-ANOVA",
+                             tableOutput("two_way_DT")
+                    ),
+                    tabPanel("Linear Regression",
+                             fluidRow(column(6, htmlOutput("lm_summary")),
+                                      column(6,plotOutput("lm_coefs"))),
+                             "Linear Regression",
+                             fluidRow(
+                               column(3,
+                                      selectInput("xvar", "Select the X variable:", 
+                                                  choices = "")),
+                               column(3,
+                                      selectInput("yvar", selected = '',
+                                                  "Select the y variable:", 
+                                                  choices = "")),
+                               column(3,
+                                      selectInput("colvar", selected = '',
+                                                  "Select a colouring variable:", 
+                                                  choices = ""))),
+                             plotOutput("lm_pred"),
+                    )
+        )
+      )
     )
   )
-}
+)
+
 
 #' Add external Resources to the Application
 #'

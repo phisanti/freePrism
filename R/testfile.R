@@ -194,7 +194,7 @@ server <- function(input, output, session) {
     two_ANOVA <- two_ANOVA(d(), 
                            input$treatment, 
                            input$variable, 
-                           input$parametric, 
+                           input$is_nonparametric, 
                            ANOVA_type = 2) 
     print(two_ANOVA)
     list(two_ANOVA)
