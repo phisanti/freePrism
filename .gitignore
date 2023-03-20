@@ -4,3 +4,6 @@
 .Ruserdata
 project_diary.md
 project_diary.html
+.Rdata
+.httr-oauth
+.DS_Store
