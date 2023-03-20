@@ -88,15 +88,20 @@ my_w_test <- function(d,
 #'
 #' @return The return value, if any, from executing the utility.
 #'
+#' @import data.table rstatix ggplot2
 #' @noRd
+#' @export
 
 comp_means_test <- function(d, input){
-  
+
+  # Load variables
   treatment <- input$treatment
   variable <- input$variable
   paired <- input$paired
   ref.group = input$ref.group
   alt_h = input$alt_h
+  
+  # Perform chosen test
   if (input$mean_test == "T-test") {
     var_equal = input$var_equal == TRUE
     test_out <- my_t_test(d,
@@ -117,7 +122,6 @@ comp_means_test <- function(d, input){
   } else {
     test_out <- data.table(Issue = "Selected test not found")
   }
-  
   return(test_out)
 }
 

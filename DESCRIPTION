@@ -10,8 +10,10 @@ Imports:
     data.table,
     DT,
     ggplot2,
+    ggpubr,
     golem (>= 0.4.0),
     magrittr,
+    rstatix,
     shiny (>= 1.7.4),
     shinythemes
 Suggests: 

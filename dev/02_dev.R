@@ -30,19 +30,33 @@ attachment::att_amend_desc()
 ## Add helper functions ----
 ## Creates fct_* and utils_*
 #golem::add_fct("helpers", with_test = TRUE)
-golem::add_utils("data_explorer", with_test = TRUE)
-golem::add_fct("data_reader", with_test = TRUE)
+golem::add_utils("ui")
+golem::add_utils("general")
+golem::add_utils("plotting_tools")
+golem::add_utils("explore")
+golem::add_utils("compare_means")
+golem::add_utils("one-way-ANOVA")
+golem::add_utils("two-way-ANOVA")
+golem::add_utils("linear-reg")
 
+#golem::add_fct("data_reader", with_test = TRUE)
+usethis::add_
+usethis::use_package("DT")
+usethis::use_package("rstatix")
+usethis::use_package("ggpubr")
+usethis::use_package("shiny")
 usethis::use_package("shinythemes")
 usethis::use_package("data.table")
 usethis::use_package("ggplot2")
+usethis::use_package("magrittr")
+
 usethis::use_pipe()
 ## External resources
 ## Creates .js and .css files at inst/app/www
 #golem::add_js_file("script")
 #golem::add_js_handler("handlers")
 golem::add_css_file("custom")
-#golem::add_sass_file("custom")
+golem::add_sass_file("custom")
 
 ## Add internal datasets ----
 ## If you have data in your package
@@ -50,13 +64,13 @@ golem::add_css_file("custom")
 
 ## Tests ----
 ## Add one line by test you want to create
-usethis::use_test("app")
+#usethis::use_test("app")
 
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("freePrism")
-devtools::build_vignettes()
+#usethis::use_vignette("freePrism")
+#devtools::build_vignettes()
 
 ## Code Coverage----
 ## Set the code coverage service ("codecov" or "coveralls")
@@ -83,22 +97,22 @@ usethis::use_github_action_check_full()
 usethis::use_github_action_pr_commands()
 
 # Travis CI
-usethis::use_travis()
-usethis::use_travis_badge()
+#usethis::use_travis()
+#usethis::use_travis_badge()
 
 # AppVeyor
-usethis::use_appveyor()
-usethis::use_appveyor_badge()
+#usethis::use_appveyor()
+#usethis::use_appveyor_badge()
 
 # Circle CI
-usethis::use_circleci()
-usethis::use_circleci_badge()
+#usethis::use_circleci()
+#usethis::use_circleci_badge()
 
 # Jenkins
-usethis::use_jenkins()
+#usethis::use_jenkins()
 
 # GitLab CI
-usethis::use_gitlab_ci()
+#usethis::use_gitlab_ci()
 
 # You're now set! ----
 # go to dev/03_deploy.R
