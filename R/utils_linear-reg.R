@@ -4,6 +4,7 @@
 #'
 #' @return The return value, if any, from executing the utility.
 #'
+#' @import stargazer
 #' @noRd
 
 escape_for_latex <- function(s) {

@@ -1,6 +1,6 @@
 select_test_ui <- tabPanel("Chosing the right test",
   selectInput("num_groups", "How many treatment groups do you have?",
-              choices = c("", "1", "2", "3", "4", "5+")),
+              choices = c("", "1", "2", "2+")),
   
   conditionalPanel(
     condition = "input.num_groups != '1'",
@@ -10,7 +10,7 @@ select_test_ui <- tabPanel("Chosing the right test",
   ),
   
   conditionalPanel(
-    condition = "input.num_groups == '1' || input.variable_type == 'Categorical'",
+    condition = "input.num_groups == '1' && input.variable_type == 'Categorical'",
     selectInput("test", "Choose a statistical test:",
                 choices = c("", "Chi-squared test", "Fisher's exact test"))
   ),

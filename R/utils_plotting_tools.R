@@ -53,6 +53,51 @@ ggplot_lm <- function(d, model, input) {
   
   return(list(ggp1 = ggp1, ggp2 = ggp2))
 }
+#' Plot_one_way
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#'
+#' @noRd
+plot_two_way <- function(d, 
+                         xval,
+                         yval, 
+                         colval,
+                         post_hoc, 
+                         ref.group = NULL, 
+                         plot_type, 
+                         col_palette = "jco") {
+  
+  local_d <- copy(d)
+  local_d[, xval := lapply(.SD, as.factor), .SDcols = xval]
+  if (colval == "") {
+    colval <- "grey"
+  }
+  print(yval)
+  print(yval)
+  print(post_hoc)
+  print(plot_type)
+  if (plot_type == "barplot") {
+    ggp <- ggpubr::ggbarplot(local_d, 
+                             y = yval, 
+                             x = xval,
+                             fill = colval,
+                             add = "mean_sd", 
+                             palette = col_palette,
+    ) 
+    
+  } else {
+    ggp <- ggpubr::ggboxplot(local_d, 
+                             y = yval, 
+                             x = xval, 
+                             fill = colval,
+                             palette = col_palette) 
+    
+  }
+  
+  return(ggp)
+}
 
 #' Plot_one_way
 #'
@@ -125,9 +170,11 @@ plot_one_comp_m <- function(d,
     paired <- FALSE
   }
   
+  local_d[,treatment := lapply(.SD, as.factor), .SDcols = treatment]
   position <- local_d[, .(pos_y = max(.SD) + max(.SD) * .25), 
                       by = treatment, 
                       .SDcols = variable]
+  
   setorder(position, -pos_y)
   position <- position[1:nrow(test_out)]
   
@@ -146,12 +193,29 @@ plot_one_comp_m <- function(d,
   } else if (plot_type == "boxplot") {
     ggp <- ggboxplot(local_d, x = treatment, y = variable, color = treatment, palette = "jco")
     
+  } else if (plot_type == "histogram") {
+    group_means <- local_d[, 
+                           lapply(.SD, mean, na.rm = TRUE), 
+                           .SDcols = variable,
+                           by = treatment]
+    print(group_means)
+    ggp <- gghistogram(local_d, 
+                       x = variable, 
+                       fill = treatment, 
+                       add = "mean" ,
+                       palette = "jco")
+    
+  }
+  
+  if (plot_type %in% c("boxplot", "barplot")){
+    ggp <-   ggp +
+      stat_pvalue_manual(test_out,
+                         y.position = position$pos_y,
+                         # ref.group = ref.group,
+                         label = "p") 
+      
   }
   ggp +
-    stat_pvalue_manual(test_out, 
-                       y.position = position$pos_y,
-                       # ref.group = ref.group, 
-                       abel = "p") +
     theme_pubr()
 }
 

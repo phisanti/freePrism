@@ -100,7 +100,7 @@ comp_means_test <- function(d, input){
   paired <- input$paired
   ref.group = input$ref.group
   alt_h = input$alt_h
-  
+
   # Perform chosen test
   if (input$mean_test == "T-test") {
     var_equal = input$var_equal == TRUE

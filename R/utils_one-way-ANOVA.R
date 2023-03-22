@@ -113,17 +113,18 @@ one_way_test <- function(d, input) {
   # Load variables
   treatment <- input$treatment
   variable <- input$variable
+  p_adjust <- input$p_adjust_method
   local_d <- copy(d)
   local_d[, (treatment) := lapply(.SD, as.factor), 
           .SDcols = treatment]
   
   if (input$one_test == "One-Way-ANOVA") {
     one_test <- one_ANOVA(local_d, treatment = treatment,variable =  variable, ANOVA_type = 2)
-    one_post_hoc <- post_hoc_aov(local_d, treatment = treatment,variable =  variable)
+    one_post_hoc <- post_hoc_aov(local_d, treatment = treatment,variable =  variable, p.adjust.method = p_adjust)
     
   } else {
     one_test <- K_wallis(local_d, treatment = treatment, variable = variable)
-    one_post_hoc <- post_hoc_kw(local_d, treatment = treatment, variable = variable)
+    one_post_hoc <- post_hoc_kw(local_d, treatment = treatment, variable = variable,  p.adjust.method = p_adjust)
     
   }
   

@@ -59,11 +59,46 @@ app_server <- function(input, output, session) {
     two_ANOVA <- two_ANOVA(d(), 
                            input$treatment, 
                            input$variable, 
-                           input$is_nonparametric, 
-                           ANOVA_type = 2) 
-    print(two_ANOVA)
-    list(two_ANOVA)
+                           input$allow_interaction,
+                           input$is_normal,
+                           ANOVA_type = input$anova_type) 
+    posthoc <- post_hoc_two_way(d(),
+                      input$treatment,
+                     input$variable,
+                     input$allow_interaction,
+                     input$is_normal,
+                     input$p_adjust_method)
+    print(input$plot_analysis)
+    print(input$xval)
+    print(input$yval)
+    print(input$colval)
+    print(input$plot_type)
+    
+    list(two_ANOVA, posthoc)
   })
+  
+  #reac_twowayplot <- 
+    reactive({
+      
+    #print(react_two_way()[[2]])
+    print(input$plot_analysis)
+      print(input$xval)
+    print(input$yval)
+    print(input$colval)
+    print(input$plot_type)
+      
+    # twaplot <- plot_two_way(d(), 
+    #                      input$xval,
+    #                      input$yval, 
+    #                      input$colval,
+    #                      post_hoc = react_two_way()[[2]], 
+    #                      ref.group = NULL, 
+    #                      plot_type = input$plot_type, 
+    #                      col_palette = "jco")
+    # print(twaplot)
+    #list(twaplot)
+  })
+  
   
   # React Linear regression
   react_lm <- eventReactive(input$run_analysis,{
@@ -96,7 +131,10 @@ app_server <- function(input, output, session) {
     req(input$treatment != "" & input$treatment != input$variable)
     react_two_sample()[[2]]
   })
-  
+  output$owplot_dl <- eventReactive(input$run_analysis, {
+    req(!is.null(output$mult_comp))
+    download_figure(react_two_sample()[[2]], "mult_comp", input)
+  })
   # Render ANOVA-one-way
   output$one_way_test <- renderDT({
     req(input$treatment != "" & input$treatment != input$variable)
@@ -112,18 +150,43 @@ app_server <- function(input, output, session) {
     req(input$treatment != "" & input$treatment != input$variable)
     react_one_way()[[3]]
   })
+  output$owplot_dl <- eventReactive(input$run_analysis, {
+    req(!is.null(output$mult_comp))
+    
+    download_figure(react_one_way()[[3]], "mult_comp", input)
+    })
+  
   # Render Two-way ANOVA
-  output$two_way_DT <- renderTable({
+  output$two_way_DT <- renderDT({
     req(input$treatment != "" & input$treatment != input$variable)
     react_two_way()[[1]]
   })
+  output$twowaypost_DT <- renderDT({
+    req(input$treatment != "" & input$treatment != input$variable)
+    react_two_way()[[2]]
+  })
+  output$twowayplot <- renderPlot({
+    req(input$xval != "" & input$yval != "")
+    
+    reac_twowayplot()[[1]]
+  })
+  
+  
   # Render LM
   output$lm_summary <- renderUI(HTML({
     req(input$treatment != "" & input$treatment != input$variable)
     
     react_lm()[[2]]}))
-  output$lm_coefs <- renderPlot(react_lm()[[3]])
-  output$lm_pred <- renderPlot(react_lm()[[4]])
+  output$lm_coefs_plot <- renderPlot(react_lm()[[3]])
+  output$lm_pred_plot <- renderPlot(react_lm()[[4]])
+  
+  # Update input items
+  observeEvent(input$treatment, {      
+    updateSelectizeInput(session,
+                         "ref_group",
+                         selected = "",
+                         choices = get_groups(d(), input$treatment))
+  })
   
   observe({
     if (input$tabs == "Linear Regression") {
@@ -157,7 +220,7 @@ app_server <- function(input, output, session) {
     updateSelectInput(session, 
                       "colvar", 
                       selected = "",
-                      choices = c("", colnames(d()))
+                      choices = c(" ", colnames(d()))
     )
     
     updateSelectInput(session,

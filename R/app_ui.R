@@ -50,26 +50,51 @@ app_ui <- function(request) {
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'Compare means'",
-          sidebar_elements_ui[["comp_means_ui"]]
+          sidebar_elements_ui[["meancomp"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'One-way ANOVA'",
-          sidebar_elements_ui[["one_way_ANOVA_ui"]]
+          sidebar_elements_ui[["oneway"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'Two-way-ANOVA'",
-          sidebar_elements_ui[["two_way_ANOVA_ui"]]
+          sidebar_elements_ui[["twoway"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'Linear Regression'",
-          sidebar_elements_ui[["lin_reg_ui"]]
+          sidebar_elements_ui[["linreg"]]
         ),
-        shiny::textInput("is_perm", "is_perm", "No"),
         shiny::selectInput("treatment", "treatment", 
                     choices = ""),
         shiny::selectInput("variable", "Select target variable", 
                     choices = ""),
-        shiny::actionButton("run_analysis", "Run Analysis")
+        shiny::fluidRow(
+          shiny::column(5,
+        shiny::actionButton("run_analysis", "Run Analysis")),
+        shiny::column(5,
+                      shiny::actionButton("plot_analysis", "Plot Analysis"))
+        ),
+        shiny::conditionalPanel(
+          condition = "input.tabs == 'Exploratory Analysis'",
+          sidebar_elements_ui$plot_tools[["exploratory"]]
+        ),
+        shiny::conditionalPanel(
+          condition = "input.tabs == 'Compare means'",
+          sidebar_elements_ui$plot_tools[["meancomp"]]
+        ),
+        shiny::conditionalPanel(
+          condition = "input.tabs == 'One-way ANOVA'",
+          sidebar_elements_ui$plot_tools[["oneway"]]
+        ),
+        shiny::conditionalPanel(
+          condition = "input.tabs == 'Two-way-ANOVA'",
+          sidebar_elements_ui$plot_tools[["twoway"]]
+        ),
+        shiny::conditionalPanel(
+          condition = "input.tabs == 'Linear Regression'",
+          sidebar_elements_ui$plot_tools[["linreg"]]
+        ),
+        
       ),
       
       # Main panels
@@ -87,27 +112,74 @@ app_ui <- function(request) {
                              
                     ),
                     shiny::tabPanel("Compare means", 
+                                    h1("Mean comparison test"),
+                                    p(mainpanel_txt_ui$compare_means$intro[1]),
+                                    p(mainpanel_txt_ui$compare_means$intro[2]),
+                                    p(mainpanel_txt_ui$compare_means$intro[3]),
                              DTOutput("comp_means_table"),
                              
                              selectInput("plot_type", "Select a Plot type:", 
-                                         choices = c("barplot", "boxplot")), 
-                             plotOutput("com_m_plot")
+                                         choices = c("barplot", "boxplot", "histogram")), 
+                             plotOutput("com_m_plot"),
+                             downloadButton("com_m_plot_dl", 
+                                            label = "Download Figure"),
+                             
                     ),
                     
                     shiny::tabPanel("One-way ANOVA",
+                                    h1("Multiple comparison test"),
+                                    p(mainpanel_txt_ui$one_anova$intro[1]),
+                                    p(mainpanel_txt_ui$one_anova$intro[2]),
+                                    p(mainpanel_txt_ui$one_anova$intro[3]),
+                                    p(mainpanel_txt_ui$one_anova$intro[4]),
                              DTOutput("one_way_test"),
                              selectInput("plot_type_ow", "Select a Plot type:", 
                                          choices = c("barplot", "boxplot")), 
                              plotOutput("one_way_plot"),
+                             downloadButton("one_way_plot_dl", 
+                                            label = "Download Figure"),
                              DTOutput("one_way_post"),
-                             downloadButton("dl_gg", label = "Download Figure"),
                     ),
                     shiny::tabPanel("Two-way-ANOVA",
-                             tableOutput("two_way_DT")
+                                    h1("Two-wat ANOVA"),
+                                    p(mainpanel_txt_ui$two_anova$intro[1]),
+                                    p(mainpanel_txt_ui$two_anova$intro[2]),
+                                    p(mainpanel_txt_ui$two_anova$intro[3]),
+                                    p(mainpanel_txt_ui$two_anova$intro[4]),
+                                    
+                             DTOutput("two_way_DT"),
+                             DTOutput("twowaypost_DT"),
+                             shiny::fluidRow(
+                                 shiny::column(3,
+                                 selectInput("plot_type_ow", "Select a Plot type:", 
+                                             choices = c("barplot", "boxplot"))
+                               ),
+                               shiny::column(3,
+                                             selectInput("xvar", "Select the X variable:", 
+                                                         choices = "")),
+                               shiny::column(3,
+                                             selectInput("yvar", selected = '',
+                                                         "Select the y variable:", 
+                                                         choices = "")),
+                               shiny::column(3,
+                                             selectInput("colvar", selected = '',
+                                                         "Select a colouring variable:", 
+                                                         choices = ""))),
+                             plotOutput("twowayplot"),
+                             downloadButton("twowayplot_dl", 
+                                            label = "Download Figure"),
+                             
+                             
                     ),
                     shiny::tabPanel("Linear Regression",
+                                    h1("Linear regression"),
+                                    p(mainpanel_txt_ui$lin_reg$intro[1]),
+                                    p(mainpanel_txt_ui$lin_reg$intro[2]),
+                                    p(mainpanel_txt_ui$lin_reg$intro[3]),
+                                    p(mainpanel_txt_ui$lin_reg$intro[4]),
+                                    
                                     shiny::fluidRow(column(6, htmlOutput("lm_summary")),
-                                      column(6,plotOutput("lm_coefs"))),
+                                      column(6,plotOutput("lm_coefs_plot"))),
                              "Linear Regression",
                              shiny::fluidRow(
                                shiny::column(3,
@@ -121,7 +193,7 @@ app_ui <- function(request) {
                                       selectInput("colvar", selected = '',
                                                   "Select a colouring variable:", 
                                                   choices = ""))),
-                             shiny::plotOutput("lm_pred"),
+                             shiny::plotOutput("lm_pred_plot"),
                     )
         )
       )
