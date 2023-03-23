@@ -17,11 +17,11 @@ colpalettes <- c("aaas", "d3", "flauti", "frontiers", "futurama",
 #' @noRd
 #' @export
 
-colinput <- function(width, id, label, choices) {
+colinput <- function(width, id, label, choices, ...) {
   shiny::column(width,
                 shiny::selectInput(id, 
                                    label,
-                                   choices = choices))
+                                   choices = choices, ...))
   
 }
 #' @title UI Utils 
@@ -33,13 +33,17 @@ colinput <- function(width, id, label, choices) {
 #' @export
 sidebar_elements_ui <- list(
   
+  # Two means comparison
   compmean = tagList(shiny::fluidRow(
     colinput(3,"ref_group", "Select a control group:", 
-                       choices = NULL),
+             choices = NULL),
     colinput(3,"var_equal", "Are variances equal:", 
-                       choices = c(TRUE, FALSE)),
-    colinput(3,"paired", "Is the test paired:", 
-                       choices = c(TRUE, FALSE))),
+             choices = c(TRUE, FALSE), 
+             selected = TRUE),
+    colinput(3,"paired", "Is the test paired:",
+             choices = c(TRUE, FALSE),
+             selected = FALSE)
+    ),
   fluidRow(
     colinput(3, "mean_test", "Select a test:", 
                        choices = c("T-test",
@@ -49,6 +53,7 @@ sidebar_elements_ui <- list(
                        choices = c("two.sided", "less", "greater")))
   ),
   
+  # One-Way ANOVA
   oneway = tagList(shiny::fluidRow(
     colinput(5, "ref_group", "Select a control group:", 
                                      choices = ""),
@@ -61,6 +66,7 @@ sidebar_elements_ui <- list(
     colinput(7,"p_adjust_method", 
                                      "Select method to adjust p-value:",
                                      choices = p.adjust.methods))),
+  # Two-way ANOVA
   twoway = shiny::tagList(shiny::fluidRow(
     colinput(5,"ref_group", "Select a control group:", 
                                      choices = NULL),
@@ -78,7 +84,7 @@ sidebar_elements_ui <- list(
     colinput(5, "allow_interaction", "Allow inteaction in your model:",
              choices = c(FALSE, TRUE))
   )),
-  
+  # Linear Regression
   linreg = shiny::fluidRow(
     column(3,numericInput(inputId = "cilevel", 
                           label = "Select Conf. Interval: ", 
@@ -88,28 +94,31 @@ sidebar_elements_ui <- list(
     )
   ),
   
-  # Plotting tools
+  ### Plotting tools ###
   plot_tools = list(
+    # Exploratory analysis tools
     exploratory = shiny::fluidRow(
-      colinput(5, "plottype", "Select a Plot type:",
+      colinput(5, "plot_type", "Select a Plot type:",
                c("histogram", "QQ", "Correation")),
       colinput(5, "colpal", "Select colour palette:",
                colpalettes),
     ),
+    # Mean comparison tools
     meancomp = shiny::fluidRow(
-      colinput(5, "plottype", "Select a Plot type:",
+      colinput(5, "plot_type", "Select a Plot type:",
                c("barplot", "boxplot", "histogram")),
       colinput(5, "colpal", "Select colour palette:",
                colpalettes)
     ),
+    # One-way ANOVA
     oneway = shiny::fluidRow(
-      colinput(5, "plottype", "Select a Plot type:",
+      colinput(5, "plot_type", "Select a Plot type:",
                c("barplot", "boxplot")),
       colinput(5, "colpal", "Select colour palette:",
                colpalettes)
     ),
     twoway = shiny::fluidRow(
-      colinput(5, "plottype", "Select a Plot type:",
+      colinput(5, "plot_type", "Select a Plot type:",
                c("barplot", "boxplot")),
       colinput(5, "xvar", "Select the X variable:",
                c("")),
@@ -121,7 +130,7 @@ sidebar_elements_ui <- list(
                colpalettes)
     ),
     linreg = shiny::fluidRow(
-      colinput(5, "plottype", "Select a Plot type:",
+      colinput(5, "plot_type", "Select a Plot type:",
                c("placeholder")),
       colinput(5, "xvar", "Select the X variable:",
                c("")),

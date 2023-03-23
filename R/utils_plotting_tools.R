@@ -163,6 +163,7 @@ plot_one_comp_m <- function(d,
   variable <- input$variable
   ref.group = input$ref.group
   plot_type = input$plot_type 
+  print(plot_type)
   col_palette = "jco"
   if ("paired" %in% names(input)) {
     paired <- input$paired == TRUE
@@ -170,6 +171,7 @@ plot_one_comp_m <- function(d,
     paired <- FALSE
   }
   
+  # Get p-val label location
   local_d[,treatment := lapply(.SD, as.factor), .SDcols = treatment]
   position <- local_d[, .(pos_y = max(.SD) + max(.SD) * .25), 
                       by = treatment, 
@@ -178,6 +180,7 @@ plot_one_comp_m <- function(d,
   setorder(position, -pos_y)
   position <- position[1:nrow(test_out)]
   
+  # Plot data
   if (plot_type == "barplot") {
     ggp <- ggpubr::ggbarplot(local_d, 
                              y = variable, 
@@ -198,7 +201,6 @@ plot_one_comp_m <- function(d,
                            lapply(.SD, mean, na.rm = TRUE), 
                            .SDcols = variable,
                            by = treatment]
-    print(group_means)
     ggp <- gghistogram(local_d, 
                        x = variable, 
                        fill = treatment, 

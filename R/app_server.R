@@ -35,10 +35,10 @@ app_server <- function(input, output, session) {
   })
   react_two_sample <- eventReactive(input$run_analysis,{
     
-    comp_means <- comp_means_test(d(), input)
-    com_means_plot <- plot_one_comp_m(d(), input, comp_means)
+    compmeans <- comp_means_test(d(), input)
+    compmeans_plot <- plot_one_comp_m(d(), input, compmeans)
     
-    list(comp_means, com_means_plot)
+    list(compmeans, compmeans_plot)
   })
   # React ANOVA-one-way comparison 
   react_one_way <- eventReactive(input$run_analysis,{
@@ -49,7 +49,7 @@ app_server <- function(input, output, session) {
                    treatment = input$treatment,
                    post_hoc = one_way_test[[2]], 
                    ref.group = NULL, 
-                   plot_type = input$plot_type_ow, 
+                   plot_type = input$plot_type, 
                    col_palette = "jco")
     list(one_way_test[[1]], one_way_test[[2]], one_way_plot)
   })

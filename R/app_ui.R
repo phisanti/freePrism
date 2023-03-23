@@ -35,6 +35,7 @@ app_ui <- function(request) {
           shiny::tags$br(),
           shiny::a(href = "https://academic.oup.com/jn/article-abstract/33/5/491/4726758?redirectedFrom=fulltext", "ToothGrowth Data Set")
         ),
+        h1("Statistical analysis tools"),
         shiny::conditionalPanel(
           condition = "input.data_source == 'file'",
           shiny::fileInput(
@@ -50,7 +51,7 @@ app_ui <- function(request) {
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'Compare means'",
-          sidebar_elements_ui[["meancomp"]]
+          sidebar_elements_ui[["compmean"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'One-way ANOVA'",
@@ -74,6 +75,7 @@ app_ui <- function(request) {
         shiny::column(5,
                       shiny::actionButton("plot_analysis", "Plot Analysis"))
         ),
+        h1("Plotting tools"),
         shiny::conditionalPanel(
           condition = "input.tabs == 'Exploratory Analysis'",
           sidebar_elements_ui$plot_tools[["exploratory"]]
@@ -100,7 +102,7 @@ app_ui <- function(request) {
       # Main panels
       shiny::mainPanel(
         shiny::tabsetPanel(id = 'tabs',
-                    select_test_ui,
+                   # select_test_ui,
                     
                     shiny::tabPanel("Exploratory Analysis", 
                              id = "explore",
@@ -117,9 +119,6 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$compare_means$intro[2]),
                                     p(mainpanel_txt_ui$compare_means$intro[3]),
                              DTOutput("comp_means_table"),
-                             
-                             selectInput("plot_type", "Select a Plot type:", 
-                                         choices = c("barplot", "boxplot", "histogram")), 
                              plotOutput("com_m_plot"),
                              downloadButton("com_m_plot_dl", 
                                             label = "Download Figure"),
@@ -133,8 +132,6 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$one_anova$intro[3]),
                                     p(mainpanel_txt_ui$one_anova$intro[4]),
                              DTOutput("one_way_test"),
-                             selectInput("plot_type_ow", "Select a Plot type:", 
-                                         choices = c("barplot", "boxplot")), 
                              plotOutput("one_way_plot"),
                              downloadButton("one_way_plot_dl", 
                                             label = "Download Figure"),
@@ -149,22 +146,6 @@ app_ui <- function(request) {
                                     
                              DTOutput("two_way_DT"),
                              DTOutput("twowaypost_DT"),
-                             shiny::fluidRow(
-                                 shiny::column(3,
-                                 selectInput("plot_type_ow", "Select a Plot type:", 
-                                             choices = c("barplot", "boxplot"))
-                               ),
-                               shiny::column(3,
-                                             selectInput("xvar", "Select the X variable:", 
-                                                         choices = "")),
-                               shiny::column(3,
-                                             selectInput("yvar", selected = '',
-                                                         "Select the y variable:", 
-                                                         choices = "")),
-                               shiny::column(3,
-                                             selectInput("colvar", selected = '',
-                                                         "Select a colouring variable:", 
-                                                         choices = ""))),
                              plotOutput("twowayplot"),
                              downloadButton("twowayplot_dl", 
                                             label = "Download Figure"),
@@ -181,25 +162,12 @@ app_ui <- function(request) {
                                     shiny::fluidRow(column(6, htmlOutput("lm_summary")),
                                       column(6,plotOutput("lm_coefs_plot"))),
                              "Linear Regression",
-                             shiny::fluidRow(
-                               shiny::column(3,
-                                      selectInput("xvar", "Select the X variable:", 
-                                                  choices = "")),
-                               shiny::column(3,
-                                      selectInput("yvar", selected = '',
-                                                  "Select the y variable:", 
-                                                  choices = "")),
-                               shiny::column(3,
-                                      selectInput("colvar", selected = '',
-                                                  "Select a colouring variable:", 
-                                                  choices = ""))),
-                             shiny::plotOutput("lm_pred_plot"),
+                             )
                     )
         )
       )
     )
   )
-)
 }
 
 #' Add external Resources to the Application
