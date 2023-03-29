@@ -38,6 +38,7 @@ golem::add_utils("compare_means")
 golem::add_utils("one-way-ANOVA")
 golem::add_utils("two-way-ANOVA")
 golem::add_utils("linear-reg")
+golem::add_utils("updater")
 
 #golem::add_fct("data_reader", with_test = TRUE)
 usethis::add_

@@ -1,3 +1,57 @@
+#' One-Way ANOVA Module
+#'
+#' @description This module performs a one-way analysis of variance (ANOVA) on the given data
+#' and generates a plot of the results.
+#'
+#' @param id A character string that specifies the namespace for the module.
+#' @param d A reactive expression that returns the data to be used in the analysis.
+#'
+#' @return A module server function that can be called within a Shiny application.
+#'
+#' @export
+oneway_module <- function(id, d) {
+  moduleServer(id, function(input, output, session) {
+    
+    # Load vars
+    modns <- NS(id)
+    
+    # Create reactive objects
+    react_test <- eventReactive(input$run_analysis,{
+      
+        one_way_test <- one_way_test(d(), input)
+        list(one_way_test[[1]], one_way_test[[2]])
+      })
+    
+    react_plot <- eventReactive(input$plot_analysis, {
+        test_plot <- plot_one_way(d(),
+                     variable = input$variable,
+                     treatment = input$treatment,
+                     post_hoc = react_test()[[2]],
+                     ref.group = NULL,
+                     plot_type = input$plot_type,
+                     col_palette = input$colpal)
+      list(test_plot)
+    })
+    
+    # Output tables and plots
+    output$one_way_test <- renderDT({
+      req(input$treatment != "" & input$treatment != input$variable)
+
+      react_test()[[1]]
+    })
+    output$one_way_post <- renderDT({
+      req(input$treatment != "" & input$treatment != input$variable)
+
+      react_test()[[2]]
+    })
+    output$one_way_plot <- renderPlot({
+      req(input$treatment != "" & input$treatment != input$variable)
+      react_plot()[[1]]
+    })
+    
+    })
+  }
+
 #' one-way-ANOVA 
 #'
 #' @description A utils function

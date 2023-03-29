@@ -1,3 +1,49 @@
+#' Linear Regression module for Shiny app
+#'
+#' This module creates a user interface and a server for a linear regression test
+#' and related plots. It also updates its inputs with the corresponding information
+#' from the data file.
+#'
+#' @param id A string that specifies the module's ID. The ID should be unique
+#' among the app's modules.
+#' @param d A reactive object containing the data to be analyzed.
+#'
+#' @return A Shiny module that provides a user interface and server logic for
+#' a linear regression test and related plots.
+#'
+#' @export
+
+linreg_module <- function(id, d) {
+  moduleServer(id, function(input, output, session) {
+    modns <- NS(id)
+    # Create reactive objects
+    ## Statistical test
+    react_lm <- eventReactive(input$run_analysis,{
+
+      lm_test <- reg_test(d(), input)
+      list(lm_test$model, lm_test$htmlout#, lm_plots[[1]], lm_plots[[2]]
+           )
+    })
+    ## Plot
+    react_plot <- eventReactive(input$plot_analysis,{
+      lm_plots <- ggplot_lm(d(), react_lm()[[1]], input)
+      
+    })
+    
+    # Output tables and plots
+    output$model <- renderUI(HTML({
+      req(input$treatment != "" & input$treatment != input$variable)
+
+      react_lm()[[2]]
+      })
+      )
+    output$coefs_plot <- renderPlot(react_plot()[[1]])
+    output$pred_plot <- renderPlot(react_plot()[[2]])
+    
+    })
+  
+  }
+
 #' linear-reg 
 #'
 #' @description A utils function

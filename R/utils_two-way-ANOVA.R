@@ -1,3 +1,68 @@
+#' Two-way ANOVA Shiny Module
+#'
+#' This module performs a two-way ANOVA and post-hoc analysis based on user-defined inputs, and
+#' creates a plot to visualize the results.
+#'
+#' @param id The module ID.
+#' @param d The data to use in the analysis.
+#'
+#' @export
+twoway_module <- function(id, d) {
+  moduleServer(id, function(input, output, session) {
+    modns <- NS(id)
+    
+    # Create reactive objects
+    ## Statistical test
+    react_two_way <- eventReactive(input$run_analysis, {
+
+      two_ANOVA <- two_ANOVA(d(),
+                             input$treatment,
+                             input$variable,
+                             input$allow_interaction,
+                             input$is_normal,
+                             ANOVA_type = input$anova_type)
+      posthoc <- post_hoc_two_way(d(),
+                                  input$treatment,
+                                  input$variable,
+                                  input$allow_interaction,
+                                  input$is_normal,
+                                  input$p_adjust_method)
+
+      list(two_ANOVA, posthoc)
+    })
+    
+    ## Plot
+    reac_twowayplot <- eventReactive(input$plot_analysis, {
+
+      twaplot <- plot_two_way(d(),
+                           input$xvar,
+                           input$yvar,
+                           input$colvar,
+                           post_hoc = react_two_way()[[2]],
+                           ref.group = NULL,
+                           plot_type = input$plot_type,
+                           col_palette = input$colpal)
+      list(twaplot)
+    })
+    
+    # Output tables and plots
+    output$test <- renderDT({
+      req(input$treatment != "" & input$treatment != input$variable)
+      react_two_way()[[1]]
+    })
+    output$posthoc <- renderDT({
+      req(input$treatment != "" & input$treatment != input$variable)
+      react_two_way()[[2]]
+    })
+    output$plot <- renderPlot({
+      req(input$xvar != "" & input$yvar != "")
+
+      reac_twowayplot()[[1]]
+    })
+    
+    })
+  }
+
 #' two-way-ANOVA 
 #'
 #' @description A utils function

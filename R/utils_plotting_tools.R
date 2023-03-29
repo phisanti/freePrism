@@ -5,6 +5,15 @@
 #' @return The return value, if any, from executing the utility.
 #'
 #' @noRd
+mean_sd <- ggpubr::mean_sd
+
+#' Plot_lm
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#'
+#' @noRd
 
 ggplot_lm <- function(d, model, input) {
   
@@ -58,7 +67,7 @@ ggplot_lm <- function(d, model, input) {
 #' @description A utils function
 #'
 #' @return The return value, if any, from executing the utility.
-#'
+#' @importFrom ggpubr mean_sd
 #' @noRd
 plot_two_way <- function(d, 
                          xval,
@@ -71,13 +80,9 @@ plot_two_way <- function(d,
   
   local_d <- copy(d)
   local_d[, xval := lapply(.SD, as.factor), .SDcols = xval]
-  if (colval == "") {
+  if (colval == " ") {
     colval <- "grey"
   }
-  print(yval)
-  print(yval)
-  print(post_hoc)
-  print(plot_type)
   if (plot_type == "barplot") {
     ggp <- ggpubr::ggbarplot(local_d, 
                              y = yval, 
@@ -137,7 +142,7 @@ plot_one_way <- function(d,
                              palette = col_palette) 
     
   }
-  ggp + stat_pvalue_manual(post_hoc, 
+  ggp + ggpubr::stat_pvalue_manual(post_hoc, 
                            y.position = position$pos_y,
                            ref.group = ref.group, 
                            label = "p.adj.signif") +
@@ -151,7 +156,9 @@ plot_one_way <- function(d,
 #' @description A utils function
 #'
 #' @return The return value, if any, from executing the utility.
-#'
+#' @import ggpubr
+#' @importFrom ggpubr mean_sd mean_ci ggboxplot ggbarplot gghistogram
+#' @importFrom ggplot2 mean_se
 #' @noRd
 plot_one_comp_m <- function(d, 
                             input,
@@ -161,10 +168,10 @@ plot_one_comp_m <- function(d,
   local_d <- copy(d)
   treatment <- input$treatment
   variable <- input$variable
-  ref.group = input$ref.group
-  plot_type = input$plot_type 
-  print(plot_type)
-  col_palette = "jco"
+  ref.group <- input$ref.group
+  plot_type <- input$plot_type 
+  col_palette <- input$colpal
+  
   if ("paired" %in% names(input)) {
     paired <- input$paired == TRUE
   } else {
@@ -186,9 +193,9 @@ plot_one_comp_m <- function(d,
                              y = variable, 
                              x = treatment,
                              fill = treatment,
-                             add = "mean_sd", 
+                             add = "mean_sd",  
                              palette = col_palette,
-    )     
+    ) 
   }  else if (plot_type == "boxplot" & paired == TRUE) {
     ggp <- ggpaired(local_d, x = treatment, y = variable, color = treatment, palette = "jco", 
                     line.color = "gray", line.size = 0.4) 
@@ -211,7 +218,7 @@ plot_one_comp_m <- function(d,
   
   if (plot_type %in% c("boxplot", "barplot")){
     ggp <-   ggp +
-      stat_pvalue_manual(test_out,
+      ggpubr::stat_pvalue_manual(test_out,
                          y.position = position$pos_y,
                          # ref.group = ref.group,
                          label = "p") 
@@ -226,7 +233,7 @@ plot_one_comp_m <- function(d,
 #' @description A utils function
 #'
 #' @return The return value, if any, from executing the utility.
-#'
+#' 
 #' @noRd
 
 ggplot_hist <- function(d, treatment, group = NULL) {

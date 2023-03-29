@@ -1,3 +1,40 @@
+
+explore_module <- function(id, d) {
+  moduleServer(id, function(input, output, session) {
+    modns <- NS(id)
+    
+    react_explore <- eventReactive(input$run_analysis,{
+
+      react_dist_tbl <- dist_detect(d(), 0.05)
+      react_summ <- summary_table(d(), input$treatment)
+
+      list(react_summ, react_dist_tbl)
+      
+    })
+    react_plot <- eventReactive(input$run_analysis,{
+      react_hist_plot <-  ggplot_hist(d(), input$treatment)
+      react_qq_plot <- ggplot_qq(d(),input$treatment)
+      
+      list(react_hist_plot, react_qq_plot)
+      
+    })
+    
+    output$summ <- renderDT(react_explore()[[1]])
+    output$dist_tbl <- renderDT(react_explore()[[2]])
+    
+    output$hist_plot <- renderPlot({
+      req(input$treatment %in% colnames(d()))
+      react_plot()[[1]]
+    })
+    output$qq_plot <- renderPlot({
+      req(input$treatment %in% colnames(d()))
+      react_plot()[[2]]
+    })
+
+    
+    
+  })
+  }
 #' explore 
 #'
 #' @description A utils function
