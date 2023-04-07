@@ -84,15 +84,11 @@ reg_test <- function(d, input) {
   variable_y <- input$variable
   variable_x <- input$treatment # Note, that here, this can be more than one
   ci_level <- input$cilevel
-  
+  allow_interaction <- input$allow_interaction
   local_d <- data.table::copy(d)
   local_d[, id := 1:.N]
-  if (length(variable_x)) {
-    regressors <- paste(variable_x, collapse = " + ") 
-  }
-  formula_obj <- paste(variable_y, "~", regressors) %>%
-    formula
   
+  formula_obj <- str_to_formula(variable_y, variable_x, allow_interaction)
   model <- lm(formula_obj, data = local_d)
   
   z <- summary(model)

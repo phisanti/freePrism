@@ -18,7 +18,7 @@ updater_module <- function(id, d) {
       
       # Load vars
       modns <- NS(NULL)
-      if (id == "linreg") {
+      if (id %in% c("linreg", "explore")) {
         multiple_choice <- ncol(d()) -1
       } else if (id == "twoway") {
         multiple_choice <- 2
@@ -33,7 +33,7 @@ updater_module <- function(id, d) {
                            modns("treatment"),
                            "Select treatment",
                            options = list(maxItems = multiple_choice),
-                           choices = all_colnames)
+                           choices = c("none", all_colnames))
       updateSelectInput(session,
                         modns("variable"),
                         "Select target variable",
@@ -42,11 +42,25 @@ updater_module <- function(id, d) {
       
       # Special update for reference group
       observeEvent(input$treatment, {
+        ref_choices <- c("none",
+                         get_groups(d(), input$treatment))
         updateSelectizeInput(session,
                              modns("ref_group"),
                              selected = "",
-                             choices = get_groups(d, input$treatment))
+                             choices = ref_choices)
       })
+      observeEvent(input$test, {
+        if (input$test %in% c("One-Way-ANOVA")) {
+          ref_choices <- c("Tukey HSD", "Mult. T-test")
+        } else if (input$test == "Kruskall-Wallis") {
+          ref_choices <- c("Dunn Test", "Mult. Wilcox")
+        }
+        updateSelectizeInput(session,
+                             modns("posthoc"),
+                             selected = ref_choices[1],
+                             choices = ref_choices)
+      })
+      
       
       # Update plotting inputs
       updateSelectInput(session,
@@ -60,7 +74,7 @@ updater_module <- function(id, d) {
       updateSelectInput(session,
                         modns("colvar"),
                         selected = "",
-                        choices = c(" ", all_colnames)
+                        choices = c("none", all_colnames)
       )
       
     })

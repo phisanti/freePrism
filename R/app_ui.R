@@ -49,63 +49,43 @@ app_ui <- function(request) {
         shiny::conditionalPanel(
           condition = "input.tabs == 'explore'",
           explore_ui("explore", "stats")
-          #""
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'compmeans'",
           compmeans_ui("compmeans", "stats")
-          #sidebar_elements_ui[["compmean"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'oneway'",
           oneway_ui("oneway", "stats")
-          #sidebar_elements_ui[["oneway"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'twoway'",
           twoway_ui("twoway", "stats")
-#          sidebar_elements_ui[["twoway"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'linreg'",
           linreg_ui("linreg", "stats")
-          #sidebar_elements_ui[["linreg"]]
         ),
-        # shiny::selectInput("treatment", "treatment", 
-        #             choices = ""),
-        # shiny::selectInput("variable", "Select target variable", 
-        #             choices = ""),
-        # shiny::fluidRow(
-        #   shiny::column(5,
-        # shiny::actionButton("run_analysis", "Run Analysis")),
-        # shiny::column(5,
-        #               shiny::actionButton("plot_analysis", "Plot Analysis"))
-        # ),
         h1("Plotting tools"),
         shiny::conditionalPanel(
           condition = "input.tabs == 'explore'",
           explore_ui("explore", "plotting")
-          #sidebar_elements_ui$plot_tools[["exploratory"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'compmeans'",
           compmeans_ui("compmeans", "plotting")
-          #sidebar_elements_ui$plot_tools[["meancomp"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'oneway'",
           oneway_ui("oneway", "plotting")
-          #sidebar_elements_ui$plot_tools[["oneway"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'twoway'",
           twoway_ui("twoway", "plotting")
-          #sidebar_elements_ui$plot_tools[["twoway"]]
         ),
         shiny::conditionalPanel(
           condition = "input.tabs == 'linreg'",
           linreg_ui("linreg", "plotting")
-          #sidebar_elements_ui$plot_tools[["linreg"]]
         ),
       ),
       
@@ -119,8 +99,7 @@ app_ui <- function(request) {
                              DTOutput("table"),
                              DTOutput("explore-summ"),
                              DTOutput('explore-dist_tbl'),
-                             plotOutput("explore-hist_plot"),
-                             plotOutput("explore-qq_plot")#,
+                             plotOutput("explore-plot"),#,
                             #shiny::textOutput('checking_test')
                              
                     ),
@@ -131,6 +110,7 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$compare_means$intro[2]),
                                     p(mainpanel_txt_ui$compare_means$intro[3]),
                              #shiny::textOutput('checking_test'),
+                             uiOutput("compmeans-text"),
                              DTOutput("compmeans-comp_means_table"),
                              plotOutput("compmeans-com_m_plot"),
                              downloadButton("com_m_plot_dl", 
@@ -145,11 +125,11 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$one_anova$intro[2]),
                                     p(mainpanel_txt_ui$one_anova$intro[3]),
                                     p(mainpanel_txt_ui$one_anova$intro[4]),
-                                    #shiny::textOutput('checking_test'),
-                                    
-                             DTOutput("oneway-one_way_test"),
-                             DTOutput("oneway-one_way_post"),
-                             plotOutput("oneway-one_way_plot"),
+                                    uiOutput("oneway-test_text"),
+                                    DTOutput("oneway-one_way_test"),
+                                    uiOutput("oneway-posthoc_text"),
+                                    DTOutput("oneway-one_way_post"),
+                                    plotOutput("oneway-one_way_plot"),
                              downloadButton("oneway-one_way_plot_dl", 
                                             label = "Download Figure")
                     ),
@@ -160,8 +140,10 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$two_anova$intro[2]),
                                     p(mainpanel_txt_ui$two_anova$intro[3]),
                                     p(mainpanel_txt_ui$two_anova$intro[4]),
+                                    uiOutput("twoway-test_text"),
                                     
                              DTOutput("twoway-test"),
+                             uiOutput("twoway-posthoc_text"),
                              DTOutput("twoway-posthoc"),
                              plotOutput("twoway-plot"),
                              downloadButton("twowayplot_dl", 

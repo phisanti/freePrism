@@ -24,8 +24,10 @@ comp_means_module <- function(id, d) {
     # Create reactive objects
     react_two_sample <- eventReactive(input$run_analysis,{
       req(input$treatment != "" & input$treatment != input$variable)
+      req(check_n_levels(d(), input$treatment) == 2)
+      
       comp_means <- select_means_test(d(), input)
-      list(comp_means)
+      comp_means
     })
     
     react_two_sample_plot <- eventReactive(input$plot_analysis,{
@@ -35,9 +37,19 @@ comp_means_module <- function(id, d) {
     })
     
     # Output tables and plots
+    output$text <- renderUI({
+      text <- react_two_sample()[[2]]
+      tagList(
+      h2(text[1]),
+      p(text[2]),
+      p(text[3]),
+      h3("Summary statistic table")
+      )
+    })
     output$comp_means_table <- renderDT({
       req(input$treatment != "" & input$treatment != input$variable)
-      react_two_sample()[[1]]
+      react_two_sample()[[1]] %>%
+        round_siginf_table
     })
     
     output$com_m_plot <- renderPlot({
@@ -89,26 +101,27 @@ my_t_test <- function(d,
     formula(.)
   
   # Perform T-test
-  test_out <- t_test(formula = formula_obj, 
+  test <- t_test(formula = formula_obj, 
                      data = local_d,
                      detailed = T,
                      ref.group = ref.group,
                      paired = paired, 
                      var.equal = var_equal,
-                     alternative = alt_h) %>%
-    data.table
+                     alternative = alt_h) 
+  #  data.table
+  test_out <- data.table(test)
+  attr(test_out, 'args') <- attr(test, 'args')
   col_names <- colnames(test_out)
-  col_remove <- col_names %in% c("n1", "n2", "conf.low", "conf.high", 
-                                 "alternative", "p.adj.signif")
+  col_remove <- col_names %in% c("n1", "n2", "alternative", "p.adj.signif")
   test_out <- test_out[, -col_names[col_remove],
                        with = FALSE]
+  class(test_out) <- c("data.frame", "data.table", "t_test")
   if ("estimate1" %in% col_names) {
-    setcolorder(test_out, c(".y.", "group1","estimate1", "group2","estimate2", 
+    setcolorder(test_out, c(".y.", "group1","estimate1", "group2","estimate2",
                             "estimate"))
   } else {
-    setcolorder(test_out, c(".y.", "group1", "group2", 
+    setcolorder(test_out, c(".y.", "group1", "group2",
                             "estimate"))
-    
   }
   return(test_out)
 }
@@ -152,20 +165,26 @@ my_w_test <- function(d,
   local_d <- copy(d)
   formula_obj <- paste(variable, "~", treatment) %>%
     formula(.)
-  
-  test_out <- wilcox_test(formula = formula_obj, 
+  paired_logical <- fcase(paired == "TRUE", TRUE,
+                          paired == "FALSE", FALSE, 
+                          default = FALSE)
+  test <- wilcox_test(formula = formula_obj, 
                           data = local_d,
                           detailed = T,
                           ref.group = ref.group,
-                          paired = paired, 
-                          alternative = alt_h) %>%
-    data.table
-  col_remove <- colnames(test_out) %in% c("n1", "n2", "conf.low", "conf.high", 
+                          paired = paired_logical, 
+                          alternative = alt_h)
+  #  data.table
+  test_out <- data.table(test)
+  col_remove <- colnames(test_out) %in% c("n1", "n2", "conf.low", "conf.high",
                                           "alternative", "p.adj.signif")
-  test_out <- test_out[, -colnames(test_out)[col_remove], 
-                       with = FALSE]
-  setcolorder(test_out, c(".y.", "group1", "group2", 
+  setcolorder(test_out, c(".y.", "group1", "group2",
                           "estimate"))
+  
+  attr(test_out, 'args') <- attr(test, 'args')
+  test_out <- test_out[, -colnames(test_out)[col_remove],
+                       with = FALSE]
+  class(test_out) <- c("data.frame", "data.table", "wilcox_test")
   return(test_out)
 }
 
@@ -222,16 +241,19 @@ select_means_test <- function(d, input){
   treatment <- input$treatment
   variable <- input$variable
   paired <- input$paired
-  ref.group = input$ref.group
-  alt_h = input$alt_h
-
+  ref_group <- input$ref_group
+  alt_h <- input$alt_h
+  
+  if (ref_group == "none") {
+    ref.group <- NULL
+  }
   # Perform chosen test
   if (input$mean_test == "T-test") {
-    var_equal = input$var_equal == TRUE
+    var_equal <- input$var_equal == TRUE
     test_out <- my_t_test(d,
                           treatment, 
                           variable, 
-                          ref.group = ref.group,
+                          ref.group = ref_group,
                           paired = paired, 
                           var_equal = var_equal, 
                           alt_h = alt_h)
@@ -240,12 +262,13 @@ select_means_test <- function(d, input){
                           treatment, 
                           variable, 
                           ref.group = ref.group,
-                          paired = FALSE, 
+                          paired = paired, 
                           alt_h = alt_h)
-    
   } else {
     test_out <- data.table(Issue = "Selected test not found")
   }
-  return(test_out)
+  
+  test_report <- reportr(test_out)
+  return(list(test_out, test_report))
 }
 

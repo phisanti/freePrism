@@ -11,38 +11,35 @@ explore_module <- function(id, d) {
       list(react_summ, react_dist_tbl)
       
     })
-    react_plot <- eventReactive(input$run_analysis,{
-      react_hist_plot <-  ggplot_hist(d(), input$treatment)
-      react_qq_plot <- ggplot_qq(d(),input$treatment)
+    react_eplot <- eventReactive(input$plot_analysis,{
+      gplot <- ggplot_explore(d(), input)
+      list(gplot)
+    })
+    
+    output$summ <- renderDT({
+      react_explore()[[1]] %>%
+        round_siginf_table})
+    output$dist_tbl <- renderDT({
+      react_explore()[[2]] %>%
+        round_siginf_table
+      })
+    
+    output$plot <- renderPlot({
+      req(input$treatment %in% colnames(d())| input$treatment == "none")
       
-      list(react_hist_plot, react_qq_plot)
-      
+      react_eplot()
     })
-    
-    output$summ <- renderDT(react_explore()[[1]])
-    output$dist_tbl <- renderDT(react_explore()[[2]])
-    
-    output$hist_plot <- renderPlot({
-      req(input$treatment %in% colnames(d()))
-      react_plot()[[1]]
-    })
-    output$qq_plot <- renderPlot({
-      req(input$treatment %in% colnames(d()))
-      react_plot()[[2]]
-    })
-
-    
-    
   })
-  }
-#' explore 
-#'
-#' @description A utils function
-#'
-#' @return The return value, if any, from executing the utility.
-#'
-#' @noRd
+}
 
+#' Check if all elements in a vector have equal frequency
+#'
+#' @param x A vector of values
+#'
+#' @return A logical value indicating whether all elements in the input vector have equal frequency
+#'
+#' @export
+#' @noRd
 equal_sample <- function(x) {
   samples_vars <- table(x) %>% 
     unique(.) %>% 
@@ -51,14 +48,15 @@ equal_sample <- function(x) {
   return(samples_vars == 1)
 }
 
-#' explore 
+#' Summarize data by treatment group
 #'
-#' @description A utils function
+#' This function takes a data.table and a treatment variable and returns a summary table of the numeric variables in the data.table, grouped by the treatment variable. The summary statistics calculated are: sample size (N), mean, median, variance (Var), and interquartile range (IQR).
 #'
-#' @return The return value, if any, from executing the utility.
+#' @param d A data table
+#' @param treatment A character string specifying the name of the treatment variable in the data table
 #'
-#' @noRd
-
+#' @return A summary table of the numeric variables in the input data table, grouped by the treatment variable
+#' @export
 summary_table <- function(d, treatment){
   
   # Copy local data
@@ -81,13 +79,15 @@ summary_table <- function(d, treatment){
   return(summ_d)
 }
 
-#' explore 
+#' Detect the distribution of numeric variables in a data.table
 #'
-#' @description A utils function
+#' This function takes a data.table and an optional cutoff value as input and returns a data.table with the results of the Shapiro-Wilk test for normality for each numeric variable in the input data.table. The output data.table contains the variable name, W-statistic, p-value, and a column indicating whether the variable is normally distributed or not based on the specified cutoff value.
 #'
-#' @return The return value, if any, from executing the utility.
+#' @param d A data table
+#' @param cutoff An optional numeric value specifying the p-value cutoff for determining normality (default is 0.05)
 #'
-#' @noRd
+#' @return A data table with the results of the Shapiro-Wilk test for normality for each numeric variable in the input data table
+#' @export
 dist_detect <- function(d, cutoff = .05){
   
   # Copy local data

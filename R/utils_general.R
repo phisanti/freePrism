@@ -20,6 +20,26 @@ read_data <- function(input) {
     d <- fread(input$df_upload_file$datapath)
   }
 }
+#' general 
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#'
+#' @noRd
+
+round_siginf_table <- function(d) {
+  
+  local_d <- as.data.table(d) %>%
+    copy(.)
+  num_colnames <- colnames(local_d[, .SD, .SDcols = is.numeric])
+  local_d[, (num_colnames) := 
+            lapply(.SD, function(x) {
+              x <- signif(x, digits=3)
+              return(x)
+            }), .SDcols = num_colnames]
+  return(local_d)
+}
 
 #' general 
 #'
@@ -68,6 +88,82 @@ download_figure <- function(figure, label, width, height) {
     }
   )
 }
+
+#' general 
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#'
+#' @noRd
+str_to_formula <- function(variable, 
+                           treatment, 
+                           allow_interaction = FALSE, 
+                           is_normal = TRUE) {
+  
+  # Deal with treatment side
+  if (length(treatment) > 1) {
+    if (allow_interaction) {
+      collapse_char <- "*"
+    } else {
+      collapse_char <- "+"
+    }
+    treatment_str <- paste(treatment, collapse = collapse_char)
+  } else {
+    treatment_str <- treatment
+  }
+  if (is_normal) {
+    target_variable <- variable
+  } else {
+    target_variable <- paste0("ranked_", variable)
+  }
+  formula_obj <- paste(target_variable, "~", treatment_str) %>%
+    formula
+}
+
+#' general 
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#'
+#' @noRd
+
+formula_to_str <- function(formula) {
+  
+  # Extract formula elements
+  formula_elemens <- formula %>% 
+    as.character %>% 
+    strsplit(., split = " ~ ") %>% 
+    unlist()
+  
+  # Assign left-hand side
+  lhs <- formula_elemens[2]
+  
+  # Assign right hand side
+  rhs <- formula_elemens[3] %>%
+    strsplit(., split = " + | * ") %>%
+    unlist()
+  rhs <- rhs[!rhs %in% c("*", "+")]
+  
+  return(list(lhs = lhs, rhs = rhs))
+}
+#' Check N-levels 
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#'
+#' @noRd
+
+check_n_levels <- function(d, treatment) {
+  
+  nlevels <- d[, lapply(.SD, unique), 
+               .SDcols = treatment] %>% 
+    nrow()
+  return(nlevels)
+}
+
 
 #' general 
 #'
