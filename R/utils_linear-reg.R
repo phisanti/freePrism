@@ -21,22 +21,33 @@ linreg_module <- function(id, d) {
     react_lm <- eventReactive(input$run_analysis,{
 
       lm_test <- reg_test(d(), input)
-      list(lm_test$model, lm_test$htmlout#, lm_plots[[1]], lm_plots[[2]]
+      list(lm_test$model, 
+           lm_test$htmlout, 
+           lm_test$report 
            )
     })
     ## Plot
-    react_plot <- eventReactive(input$plot_analysis,{
-      lm_plots <- ggplot_lm(d(), react_lm()[[1]], input)
-      
-    })
     
     # Output tables and plots
+    output$text <- renderUI({
+      text <- react_lm()[[3]]
+      tagList(
+        h2(text[1]),
+        lapply(text[2:length(text)], FUN = function(x) p(x)),
+      )
+      
+    })
     output$model <- renderUI(HTML({
       req(input$treatment != "" & input$treatment != input$variable)
 
       react_lm()[[2]]
       })
       )
+    
+    react_plot <- eventReactive(input$plot_analysis,{
+      lm_plots <- ggplot_lm(d(), react_lm()[[1]], input)
+      
+    })
     output$coefs_plot <- renderPlot(react_plot()[[1]])
     output$pred_plot <- renderPlot(react_plot()[[2]])
     
@@ -105,8 +116,10 @@ reg_test <- function(d, input) {
                          #t = t_stats,
                          single.row=TRUE
     ))
-  
+  out_report <- c("xxx", "zzz")
+  out_report <- reportr(model)
   out <- list(model = model,
-              htmlout = htmlout)
+              htmlout = htmlout,
+              report = out_report)
   return(out)
 }  

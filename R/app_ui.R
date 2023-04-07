@@ -157,7 +157,7 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$lin_reg$intro[1]),
                                     p(mainpanel_txt_ui$lin_reg$intro[2]),
                                     p(mainpanel_txt_ui$lin_reg$intro[3]),
-                                    
+                                    uiOutput("linreg-text"),
                                     shiny::fluidRow(column(6, 
                                                            htmlOutput("linreg-model")),
                                       column(6,plotOutput("linreg-coefs_plot"))),

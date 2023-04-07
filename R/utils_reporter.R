@@ -9,7 +9,12 @@
 reportr <- function(test, print_report = FALSE) {
   
   test_classes <- class(test)
-  n <- nrow(test)
+  
+  if("lm" %in% test_classes) {
+    n <- 0
+  } else {
+    n <- nrow(test)
+    }
   if ("t_test" %in% test_classes& n == 1) {
     test_report <- reportr_ttest(test, print_report)
   } else if ("t_test" %in% test_classes & n > 1) {
@@ -26,7 +31,10 @@ reportr <- function(test, print_report = FALSE) {
     test_report <- reportr_tukey_test(test, print_report) 
   } else if ("dunn_test" %in% test_classes) {
     test_report <- reportr_dunn_test(test, print_report) 
-  }
+  } else if ("lm" %in% test_classes) {
+    test_report <- reportr_lm(test, print_report) 
+    
+    }
   
   return(test_report)
 }
@@ -228,6 +236,105 @@ reportr_anova <- function(anova_test, print_report = FALSE) {
   if (print_report) {
     print(glue_collapse(text, sep = "\n") %>%
             glue_collapse(c(title, top, .), sep = "\n\n")  %>% cat)
+  }
+  
+  return(out_text)
+}
+
+#' reporter 
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#' @import glue
+#' @noRd
+reportr_lm <- function(lm_model, print_report = FALSE) {
+  
+  
+  # Load variables
+  lm_test <- broom::glance(lm_model)
+  pval <- lm_test$p.value
+  radj2 <- lm_test$adj.r.squared
+  r2 <- lm_test$r.squared
+  lm_table <- broom::tidy(m0, conf.int = TRUE)
+  formula_str <- formula_to_str(lm_model$terms)
+  variable <- formula_str$lhs
+  treatment <- formula_str$rhs
+
+  # If multiple treatment, then join
+  if (length(treatment) == 1) {
+    treatment_str <- treatment
+  } else if (length(treatment) > 1) {
+    treatment_str <- glue::glue_collapse(treatment, sep = ",")
+  }
+  
+  # Generate title and top text
+  title <- glue::glue("Linear Model Analysis for {variable}")
+  top0 <- glue::glue("A linear model to predict {variable} by {treatment_str}. This model
+  assumes a linear relationship between the dependent variable and independent 
+  variables, independence and constant variance of the error terms and normality 
+  of the error terms."
+               )
+  
+  pval_sig <- text_pval(pval)
+  top1 <- glue::glue("The model explains a {pval_sig}")
+  r2_substantial <- radj2 < .4
+  pval_significant <- pval < .05
+  # Classify R2
+  if (r2_substantial & pval_significant) {
+    top1 <- glue::glue("{top1} and substantial proportion of variance (adj. R2 = {radj2},
+                 R2 = {r2})")
+  } else if (not(r2_substantial) & pval_significant) {
+    top1 <- glue::glue("{top1}, but weak proportion of variance (adj. R2 = {radj2},
+                 R2 = {r2})")
+  } else if (r2_substantial & not(pval_significant)) {
+    top1 <- glue::glue("{top1}, yet substantial proportion of variance (adj. R2 = {radj2},
+                 R2 = {r2})")
+  } else if (not(r2_substantial) & not(pval_significant)) {
+    top1 <- glue::glue("{top1} and weak proportion of variance (adj. R2 = {radj2},
+                 R2 = {r2})")
+  }
+  #top1 <- glue()
+  # Iterate over tests
+  n <- nrow(lm_table)
+  tests_text <- vector("character", n)
+  for (i in seq_len(n)) {
+    
+    # Load contrast-i variables
+    effect <- lm_table[i, "term"]
+    estimate <- lm_table[i, "estimate"] %>% signif(., digits=3)
+    std.error <- lm_table[i, "std.error"] %>% signif(., digits=3)
+    pval <- lm_table[i, "p.value"] %>% signif(., digits=3)
+    cilow <- lm_table[i, "conf.low"] %>% signif(., digits=3)
+    cihigh <- lm_table[i, "conf.high"] %>% signif(., digits=3)
+    eff_type <- "main effect"
+    
+    # Verbalise p-val and describe effect
+    pval_sig <- text_pval(pval)
+    effsize_dir <- ifelse(estimate < 0, "negative", "positive")
+    effsize_desc <- glue::glue("{effsize_dir} effect (Beta = {estimate})")
+    
+    pval_sig_eff <- text_pval(pval)
+    if (grepl(pattern = ":", x = effect)) {
+      eff_type <- "interaction"
+    }
+    
+    if (grepl(pattern = "intercept", x = effect)) {
+      tests_text[i] <- glue::glue(" - The baseline intercept is {effsize_dir} and 
+      {pval_sig_eff}, with beta = {estimate}, 95% CI [{cilow}, {cihigh}].")
+    } else {
+      tests_text[i] <- glue::glue(" - The {effect} has a {effsize_desc} and is {pval_sig_eff} with 
+                          a {estimate}, 95% CI [{cilow}, {cihigh}].")
+      
+      
+    }
+  }
+  top <- glue::glue_collapse(c(top0, top1), sep = "\n\n")
+  out_text <- c("title" = title,"top" = top, "text" = tests_text)
+  
+  if (print_report) {
+    
+    print(paste(out_text, collapse = "\n\n") %>% cat)
   }
   
   return(out_text)
@@ -536,23 +643,10 @@ reportr_tukey_test <- function(tukey_test, print_report = FALSE) {
 #' @noRd
 
 text_pval <- function(pval, cutoff = 0.05) {
+  pval_round <- signif(pval, 3)
   pval_tex <- ifelse(pval < cutoff, 
-                     "statistically significant (p-value = pval)", 
-                     "statistically not significant (p-value = pval)")
-  return(pval_tex)
-}
-#' reporter 
-#'
-#' @description A utils function
-#'
-#' @return The return value, if any, from executing the utility.
-#' @import glue
-#' @noRd
-
-text_pval <- function(pval, cutoff = 0.05) {
-  pval_tex <- ifelse(pval < cutoff, 
-                     glue("statistically significant (p-value = {pval})"), 
-                          glue("statistically not significant (p-value = {pval})")
+                     glue::glue("statistically significant (p-value = {pval_round})"), 
+                     glue::glue("statistically not significant (p-value = {pval_round})")
   )
   return(pval_tex)
 }
