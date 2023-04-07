@@ -78,7 +78,7 @@ ggplot_lm <- function(d, model, input) {
     ggp <- autoplot(model, which = 1:6, ncol = 3, 
                     label.size = 3, data = local_d,
              colour = 'colvar')
-  } else if (plot_typle == "linear") {
+  } else if (plot_type == "linear") {
     
     local_d[, pred_vals := fitted(model)]
     ggp <- ggplot(local_d, 
@@ -88,7 +88,7 @@ ggplot_lm <- function(d, model, input) {
     
   }
 
-  return(list(ggp))
+  return(ggp)
 }
 
 #' Plot_one_way
@@ -191,13 +191,13 @@ plot_one_comp_m <- function(d,
   ref.group <- input$ref.group
   plot_type <- input$plot_type 
   col_palette <- input$colpal
+  test_table <- data.table(test_out)
   
   if ("paired" %in% names(input)) {
     paired <- input$paired == TRUE
   } else {
     paired <- FALSE
   }
-  
   # Get p-val label location
   local_d[,treatment := lapply(.SD, as.factor), .SDcols = treatment]
   position <- local_d[, .(pos_y = max(.SD) + max(.SD) * .25), 
@@ -238,14 +238,16 @@ plot_one_comp_m <- function(d,
   
   if (plot_type %in% c("boxplot", "barplot")){
     ggp <-   ggp +
-      ggpubr::stat_pvalue_manual(test_out,
+      ggpubr::stat_pvalue_manual(test_table,
                          y.position = position$pos_y,
                          # ref.group = ref.group,
                          label = "p") 
       
   }
-  ggp +
+  ggp <- ggp +
     theme_pubr()
+  
+  return(ggp)
 }
 
 #' plotting_tools 
@@ -383,14 +385,14 @@ ggplot_qq <- function(d, treatment, colpal) {
   
   # Plot
 
-  ggpubr::ggqqplot(data = melt_d, 
+  ggp <- ggpubr::ggqqplot(data = melt_d, 
                    x = "value", 
                    color = treatment, 
                    palette = colpal) +
       facet_wrap(variable ~ .,
                  scales = "free"
       )
-    
+  return(ggp)
 }
 
 #' Add pvalues

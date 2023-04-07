@@ -68,27 +68,22 @@ get_groups <- function(d, colx) {
 #' @return The return value, if any, from executing the utility.
 #'
 #' @noRd
-download_figure <- function(figure, label, width, height) {
+
+download_plot <- function(figure, label) {
   
-  # Load vars
-  width <- input$figwidth
-  height <- input$figheight
-  
-  # Create handler
+  plot_name <- paste0(label, "_", Sys.Date() ,".pdf")
   downloadHandler(
-    filename = paste0(label, "_", Sys.Date() ,".pdf"),
+    filename = plot_name,
     content = function(file) {
-      ggsave(
-        file,
-        plot = figure,
-        width = width,
-        height = height, 
-        units = "cm"
-      )
+      ggsave(plot = figure, 
+             filename = file, 
+             width = 12, 
+             height = 12, 
+             dpi = 300, 
+             units = "cm")
     }
   )
 }
-
 #' general 
 #'
 #' @description A utils function

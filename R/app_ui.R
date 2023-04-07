@@ -100,8 +100,8 @@ app_ui <- function(request) {
                              DTOutput("explore-summ"),
                              DTOutput('explore-dist_tbl'),
                              plotOutput("explore-plot"),#,
-                            #shiny::textOutput('checking_test')
-                             
+                             downloadButton("explore-plot_dl", 
+                                            label = "Download Figure"),                             
                     ),
                     shiny::tabPanel(title = "Compare means", 
                                     value = "compmeans",
@@ -109,11 +109,10 @@ app_ui <- function(request) {
                                     p(mainpanel_txt_ui$compare_means$intro[1]),
                                     p(mainpanel_txt_ui$compare_means$intro[2]),
                                     p(mainpanel_txt_ui$compare_means$intro[3]),
-                             #shiny::textOutput('checking_test'),
                              uiOutput("compmeans-text"),
                              DTOutput("compmeans-comp_means_table"),
                              plotOutput("compmeans-com_m_plot"),
-                             downloadButton("com_m_plot_dl", 
+                             downloadButton("compmeans-plot_dl", 
                                             label = "Download Figure"),
                              
                     ),
@@ -130,7 +129,7 @@ app_ui <- function(request) {
                                     uiOutput("oneway-posthoc_text"),
                                     DTOutput("oneway-one_way_post"),
                                     plotOutput("oneway-one_way_plot"),
-                             downloadButton("oneway-one_way_plot_dl", 
+                             downloadButton("oneway-plot_dl", 
                                             label = "Download Figure")
                     ),
                     shiny::tabPanel("Two-way-ANOVA",
@@ -146,7 +145,7 @@ app_ui <- function(request) {
                              uiOutput("twoway-posthoc_text"),
                              DTOutput("twoway-posthoc"),
                              plotOutput("twoway-plot"),
-                             downloadButton("twowayplot_dl", 
+                             downloadButton("twoway-plot_dl", 
                                             label = "Download Figure"),
                              
                              
@@ -161,7 +160,9 @@ app_ui <- function(request) {
                                     shiny::fluidRow(column(6, 
                                                            htmlOutput("linreg-model")),
                                       column(6,plotOutput("linreg-coefs_plot"))),
-                             plotOutput("linreg-pred_plot")
+                             plotOutput("linreg-pred_plot"),
+                             downloadButton("linreg-plot_dl", 
+                                            label = "Download Figure"),
                              )
                     )
         )

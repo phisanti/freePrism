@@ -29,6 +29,8 @@ explore_module <- function(id, d) {
       
       react_eplot()
     })
+    output$plot_dl <- download_plot(react_eplot()[[1]], id)
+    
   })
 }
 

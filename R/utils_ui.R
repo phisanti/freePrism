@@ -92,20 +92,20 @@ compmeans_ui <- function(id, panel) {
   
   if (panel == "stats") {
     sidebar <- tagList(shiny::fluidRow(
-      colinput(3, modns("ref_group"), "Select a control group:", 
+      colinput(4, modns("ref_group"), "Select a control group:", 
                choices = NULL),
-      colinput(3, modns("var_equal"), "Are variances equal:", 
+      colinput(4, modns("var_equal"), "Are variances equal:", 
                choices = c(TRUE, FALSE), 
                selected = TRUE),
-      colinput(3, modns("paired"), "Is the test paired:",
+      colinput(4, modns("paired"), "Is the test paired:",
                choices = c(TRUE, FALSE),
                selected = FALSE)
     ),
     fluidRow(
-      colinput(3, modns("mean_test"), "Select a test:", 
+      colinput(4, modns("mean_test"), "Select a test:", 
                choices = c("T-test",
                            "Wilcox-test")),
-      colinput(3, modns("alt_h"), 
+      colinput(4, modns("alt_h"), 
                "Select a test:", 
                choices = c("two.sided", "less", "greater"))),
     common_input(panel, modns)
