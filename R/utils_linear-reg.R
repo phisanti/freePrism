@@ -27,6 +27,14 @@ linreg_module <- function(id, d) {
            )
     })
     ## Plot
+    react_plotcoef <- eventReactive(input$run_analysis,{
+      coef_plot <- plot_lmcoef(react_lm()[[1]])
+    })
+    
+    react_plot <- eventReactive(input$plot_analysis,{
+      lm_plots <- ggplot_lm(d(), react_lm()[[1]], input)
+      
+    })
     
     # Output tables and plots
     output$text <- renderUI({
@@ -43,13 +51,8 @@ linreg_module <- function(id, d) {
       react_lm()[[2]]
       })
       )
-    
-    react_plot <- eventReactive(input$plot_analysis,{
-      lm_plots <- ggplot_lm(d(), react_lm()[[1]], input)
-      
-    })
-    output$coefs_plot <- renderPlot(react_plot()[[1]])
-    output$pred_plot <- renderPlot(react_plot()[[2]])
+    output$coefs_plot <-renderPlot(react_plotcoef()[[1]])#renderPlot(react_plot()[[1]])
+    output$pred_plot <- renderPlot(react_plot()[[1]], height = 700)
     
     })
   

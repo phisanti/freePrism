@@ -253,9 +253,9 @@ reportr_lm <- function(lm_model, print_report = FALSE) {
   
   # Load variables
   lm_test <- broom::glance(lm_model)
-  pval <- lm_test$p.value
-  radj2 <- lm_test$adj.r.squared
-  r2 <- lm_test$r.squared
+  pval <- lm_test$p.value %>% signif(., digits=3)
+  radj2 <- lm_test$adj.r.squared %>% signif(., digits=3)
+  r2 <- lm_test$r.squared %>% signif(., digits=3)
   lm_table <- broom::tidy(m0, conf.int = TRUE)
   formula_str <- formula_to_str(lm_model$terms)
   variable <- formula_str$lhs
@@ -278,7 +278,7 @@ reportr_lm <- function(lm_model, print_report = FALSE) {
   
   pval_sig <- text_pval(pval)
   top1 <- glue::glue("The model explains a {pval_sig}")
-  r2_substantial <- radj2 < .4
+  r2_substantial <- radj2 > .4
   pval_significant <- pval < .05
   # Classify R2
   if (r2_substantial & pval_significant) {

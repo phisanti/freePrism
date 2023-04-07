@@ -161,7 +161,6 @@ app_ui <- function(request) {
                                     shiny::fluidRow(column(6, 
                                                            htmlOutput("linreg-model")),
                                       column(6,plotOutput("linreg-coefs_plot"))),
-                             "Linear Regression",
                              plotOutput("linreg-pred_plot")
                              )
                     )

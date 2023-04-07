@@ -243,7 +243,7 @@ linreg_ui <- function(id, panel) {
   } else if (panel == "plotting") {
     sidebar <- tagList(shiny::fluidRow(
       colinput(5, modns("plot_type"), "Select a Plot type:",
-               c("placeholder")),
+               c("model check", "linear")),
       colinput(5, modns("xvar"), "Select the X variable:",
                c("")),
       colinput(5, modns("yvar"), "Select the Y variable:",

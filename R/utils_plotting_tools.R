@@ -16,14 +16,43 @@ mean_sd <- ggpubr::mean_sd
 #'
 #' @noRd
 
+plot_lmcoef <- function(model, input) {
+  
+  coef_table <- summary(model) %>%
+    coefficients %>%
+    data.table(., keep.rownames = T)
+  setnames(coef_table, c("variable", "estimate", "error", "t_val", "p_val"))
+  coef_table[, p_val_label := signif(p_val, 3)]
+  
+  ggp1 <- ggplot(coef_table, aes(x = estimate, y = variable)) +
+    geom_point() +
+    geom_errorbarh(aes(xmin = estimate - error, xmax = estimate + error), 
+                   height = .25) +
+    geom_text(aes(y = variable, label = p_val_label),
+              vjust = -3) +
+    geom_vline(xintercept = 0, linetype = 2, col = "firebrick") +
+    theme_pubr()
+  
+  return(list(ggp1))
+  
+}
+
+#' Plot_lm
+#'
+#' @description A utils function
+#'
+#' @return The return value, if any, from executing the utility.
+#' @import ggfortify
+#' @noRd
 ggplot_lm <- function(d, model, input) {
   
   # Shape data
   local_d <- copy(d)
   xvar <- input$xvar
   yvar <- input$yvar
+  plot_type <- input$plot_type
   
-  if ("colvar" %in% names(input) && input$colvar != "") {
+  if ("colvar" %in% names(input) && not(input$colvar == "")) {
     
     colvar <- input$colvar
     local_d[, c("xvar", "yvar", "colvar") := .SD, 
@@ -43,26 +72,25 @@ ggplot_lm <- function(d, model, input) {
   setnames(coef_table, c("variable", "estimate", "error", "t_val", "p_val"))
   coef_table[, p_val_label := signif(p_val, 3)]
   
-  # make plot effects
-  ggp1 <- ggplot(coef_table, aes(x = estimate, y = variable)) +
-    geom_point() +
-    geom_errorbarh(aes(xmin = estimate - error, xmax = estimate + error), 
-                   height = .25) +
-    geom_text(aes(y = variable, label = p_val_label),
-              vjust = -3) +
-    geom_vline(xintercept = 0, linetype = 2, col = "firebrick") +
-    theme_pubr()
+  # Select Plot
   
-  # Plot 
-  local_d[, pred_vals := fitted(model)]
-  ggp2 <- ggplot(local_d, 
-                 aes(x = xvar)) +
-    geom_point(aes(y = yvar, col = colvar), show.legend = col_var_present) +
-    geom_point(aes(y = pred_vals), col = "firebrick")
-  
-  
-  return(list(ggp1 = ggp1, ggp2 = ggp2))
+  if (plot_type == "model check") {
+    ggp <- autoplot(model, which = 1:6, ncol = 3, 
+                    label.size = 3, data = local_d,
+             colour = 'colvar')
+  } else if (plot_typle == "linear") {
+    
+    local_d[, pred_vals := fitted(model)]
+    ggp <- ggplot(local_d, 
+                   aes(x = xvar)) +
+      geom_point(aes(y = yvar, col = colvar), show.legend = col_var_present) +
+      geom_point(aes(y = pred_vals), col = "firebrick")
+    
+  }
+
+  return(list(ggp))
 }
+
 #' Plot_one_way
 #'
 #' @description A utils function
