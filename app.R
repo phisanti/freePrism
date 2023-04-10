@@ -6,6 +6,8 @@
 #
 #    http://shiny.rstudio.com/
 #
+library(remotes)
+remotes::install_github('phisanti/freePrism')
 library(freePrism)
 shiny::shinyApp(
   ui = app_ui,
