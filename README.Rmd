@@ -17,12 +17,12 @@ knitr::opts_chunk$set(
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-The goal of freePrism is to prodive a platform for statistical analysis similar to Prism for free. This app should allow you to perform simple statistical analysis such as two sample comparison, multiple sample comparion, ANOVA, and linear models. You can easily upload your data and then get you p-values. Then, download the plot and modify it as required for your publication!
+The goal of freePrism is to provide a platform for statistical analysis similar to Prism for free. This app should allow you to perform simple statistical analysis such as two sample comparison, multiple sample comparion, ANOVA, and linear models. You can easily upload your data and then get you p-values. Then, download the plot and modify it as required for your publication!
 
 ## Installation
 
-You can install the development version of freePrism like so:
+You can install the development version of freePrism from this repository:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+remotes::install_github("https://github.com/phisanti/freePrism")
 ```
