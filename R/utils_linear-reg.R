@@ -55,7 +55,7 @@ linreg_module <- function(id, d) {
       req(input$treatment != "none" & input$treatment != input$variable)
       
       react_plot()
-      }#, height = 800
+      }, height = 800
       )
     
     output$coefs_plot <-renderPlot(react_plotcoef()[[1]])

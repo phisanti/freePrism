@@ -6,6 +6,7 @@
 #' @importFrom shiny fluidPage sidebarLayout sidebarPanel radioButtons helpText 
 #' conditionalPanel textInput selectInput actionButton mainPanel
 #' @importFrom DT DTOutput
+#' @export
 #' @noRd
 
 library(shiny)
@@ -160,9 +161,9 @@ app_ui <- function(request) {
                                     shiny::fluidRow(column(6, 
                                                            htmlOutput("linreg-model")),
                                       column(6,plotOutput("linreg-coefs_plot"))),
-                             plotOutput("linreg-pred_plot"),
                              downloadButton("linreg-plot_dl", 
                                             label = "Download Figure"),
+                             plotOutput("linreg-pred_plot")
                              )
                     )
         )

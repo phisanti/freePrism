@@ -82,6 +82,7 @@ ggplot_lm <- function(d, model, input) {
   xvar <- input$xvar
   yvar <- input$yvar
   plot_type <- input$plot_type
+  col_palette <-  input$colpal
   
   if (input$colvar == "" | input$colvar == "none") {
     colvar <- "colvar"
@@ -95,25 +96,26 @@ ggplot_lm <- function(d, model, input) {
   
   if (plot_type == "model check") {
     ggp_multiplot <- autoplot(model, which = 1:6, ncol = 3, 
-                     label.size = 3, data = local_d, colour = 'colvar') + 
+                     label.size = 3, data = local_d, colour = colvar) + 
       theme_pubr(base_family = "Helvetica"
       )
     
     ggp <- ggarrange(plotlist = ggp_multiplot@plots)
   } else if (plot_type == "scatter") {
+    
     local_d[, c("pred_vals", "se") := 
         predict(model, newdata = .SD, se.fit = T) %$% 
         .(fit, se.fit)]
     local_d[, c("upper", "lower") := .(pred_vals + se, pred_vals - se)]
-    ggp <- ggpubr::ggscatter(local_d, x = xvar, yvar, color = colvar) +
+    ggp <- ggpubr::ggscatter(local_d, x = xvar, yvar, color = colvar, 
+                             palette = col_palette) +
       geom_line(aes_string(x = xvar, y = "pred_vals", col = colvar)) +
-      geom_errorbar(aes_string(ymin = "lower", ymax = "upper"), width = 0.2)
+      geom_errorbar(aes_string(ymin = "lower", ymax = "upper", col = colvar), 
+                    width = 0.2)
     
     
   }
-  ggp + 
-     theme_pubr(base_family = "Helvetica"
-                )
+  
   return(ggp)
 }
 
@@ -223,7 +225,7 @@ plot_anova <- function(d, input,
 #' @importFrom data.table setorder
 #' @importFrom ggpubr ggbarplot ggboxplot ggpaired gghistogram stat_pvalue_manual
 #' theme_pubr
-#' @examples
+#' @export
 plot_one_comp_m <- function(d, 
                             input,
                             test_out) {

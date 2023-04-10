@@ -13,7 +13,6 @@
 #' @return A data table containing the results of the pairwise comparisons, including the names of the compared groups, the difference in means, the standard error, the t-value, the degrees of freedom, the p-value, and any adjustment for multiple testing.
 #'
 #' @importFrom data.table data.table
-#' @importFrom magrittr %>%
 #'
 #' @export
 posthoc_test <- function(d, treatment, variable, test, p.adjust.method = "bonferroni") {
@@ -75,7 +74,6 @@ posthoc_test <- function(d, treatment, variable, test, p.adjust.method = "bonfer
 #' @return A data table containing the results of the pairwise comparisons, including the names of the compared groups, the difference in means, the standard error, the t-value, the degrees of freedom, the p-value, and any adjustment for multiple testing.
 #'
 #' @importFrom data.table data.table
-#' @importFrom magrittr %>%
 #'
 #' @export
 ph_tukey <- function(d, treatment, variable, p.adjust.method = "bonferroni") {
@@ -106,22 +104,8 @@ ph_tukey <- function(d, treatment, variable, p.adjust.method = "bonferroni") {
 #' @param p.adjust.method A string specifying the method used to adjust p-values for multiple comparisons. Default is "bonferroni".
 #'
 #' @return A data table containing the results of the pairwise comparisons, including the names of the compared groups, the test statistic, the p-value, and any adjustment for multiple testing.
-#'
-#' @examples
-#' # Load example data
-#' data(iris)
-#'
-#' # Conduct Kruskal-Wallis test
-#' kruskal.test(Sepal.Length ~ Species, data = iris) %>%
-#'   print()
-#'
-#' # Conduct post-hoc pairwise comparisons using Dunn's test
-#' post_hoc_kw(iris, "Species", "Sepal.Length", p.adjust.method = "fdr") %>%
-#'   print()
-#'
 #' @importFrom data.table data.table
 #' @importFrom rstatix dunn_test
-#' @importFrom magrittr %>%
 #'
 #' @export
 ph_dunn <- function(d, treatment, variable, p.adjust.method = "bonferroni") {
@@ -152,7 +136,6 @@ ph_dunn <- function(d, treatment, variable, p.adjust.method = "bonferroni") {
 #'
 #' @importFrom data.table data.table
 #' @importFrom rstatix t_test
-#' @importFrom magrittr %>%
 #'
 #' @export
 ph_mult_ttest <- function(d, treatment, variable, p.adjust.method = "bonferroni") {
@@ -183,7 +166,6 @@ ph_mult_ttest <- function(d, treatment, variable, p.adjust.method = "bonferroni"
 #'
 #' @importFrom data.table data.table
 #' @importFrom rstatix wilcox_test
-#' @importFrom magrittr %>%
 #'
 #' @export
 ph_mult_wilcox <- function(d, treatment, variable, p.adjust.method = "bonferroni") {

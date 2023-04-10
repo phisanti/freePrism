@@ -61,7 +61,6 @@ twoway_module <- function(id, d) {
     })
     output$posthoc <- renderDT({
       req(input$treatment != "" & input$treatment != input$variable)
-      #req()
       react_two_way()[[2]] %>%
         round_siginf_table
     })

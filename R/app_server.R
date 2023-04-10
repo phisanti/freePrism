@@ -6,6 +6,7 @@
 #' @importFrom DT renderDT
 #' @importFrom ggpubr theme_pubr
 #' @importFrom shinyvalidate InputValidator sv_required
+#' @export
 #' @noRd
 
 app_server <- function(input, output, session) {

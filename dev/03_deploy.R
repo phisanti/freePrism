@@ -16,7 +16,7 @@
 ## Run checks ----
 ## Check the package before sending to prod
 devtools::check()
-rhub::check_for_cran()
+#rhub::check_for_cran()
 
 # Deploy
 
@@ -33,17 +33,17 @@ golem::add_shinyserver_file()
 
 ## Docker ----
 ## If you want to deploy via a generic Dockerfile
-golem::add_dockerfile_with_renv()
+#golem::add_dockerfile_with_renv()
 
 ## If you want to deploy to ShinyProxy
-golem::add_dockerfile_with_renv_shinyproxy()
+#golem::add_dockerfile_with_renv_shinyproxy()
 
 
 # Deploy to Posit Connect or ShinyApps.io
 # In command line.
 rsconnect::deployApp(
-  appName = desc::desc_get_field("Package"),
-  appTitle = desc::desc_get_field("Package"),
+  appName = desc::desc_get_field("freePrism"),
+  appTitle = desc::desc_get_field("freePrism"),
   appFiles = c(
     # Add any additional files unique to your app here.
     "R/",

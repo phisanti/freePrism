@@ -24,16 +24,3 @@ dataset, after a Kruskal-Wallis test has indicated significant differences
 among the groups. The function uses the Dunn's test to compare all possible 
 pairwise differences between the groups.
 }
-\examples{
-# Load example data
-data(iris)
-
-# Conduct Kruskal-Wallis test
-kruskal.test(Sepal.Length ~ Species, data = iris) \%>\%
-  print()
-
-# Conduct post-hoc pairwise comparisons using Dunn's test
-post_hoc_kw(iris, "Species", "Sepal.Length", p.adjust.method = "fdr") \%>\%
-  print()
-
-}
