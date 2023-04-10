@@ -99,7 +99,7 @@ app_ui <- function(request) {
                              DTOutput("table"),
                              DTOutput("explore-summ"),
                              DTOutput('explore-dist_tbl'),
-                             plotOutput("explore-plot"),#,
+                             plotOutput("explore-plot"),
                              downloadButton("explore-plot_dl", 
                                             label = "Download Figure"),                             
                     ),

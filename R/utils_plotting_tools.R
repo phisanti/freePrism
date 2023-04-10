@@ -1,21 +1,23 @@
-#' Plot_lm
+#' Exporting ggpubr::mean_sd function
 #'
-#' @description A utils function
+#' The ggpubr package provides a function called mean_sd, which calculates the mean and standard deviation of a vector. However, in order to use this function within certain ggpubr functions, such as barplot, it is necessary to export it to a function within your own package. This function does not have any parameters or return values, it simply imports the ggpubr::mean_sd function and exports it to your package.
 #'
-#' @return The return value, if any, from executing the utility.
-#'
-#' @noRd
+#' @importFrom ggpubr mean_sd
 #' @export
 mean_sd <- ggpubr::mean_sd
 
-#' Plot_lm
+#' Plot coefficients of a linear model
 #'
-#' @description A utils function
+#' This function plots the coefficients of a linear model with their corresponding standard errors and p-values.
 #'
-#' @return The return value, if any, from executing the utility.
+#' @param model The linear model object to be plotted.
+#' @param input A list containing the input values for the function.
 #'
-#' @noRd
-
+#' @return A list containing the ggplot object generated.
+#'
+#' @importFrom ggplot2 ggplot geom_point geom_errorbarh geom_text geom_vline
+#' @importFrom ggpubr theme_pubr
+#' @export
 plot_lmcoef <- function(model, input) {
   
   coef_table <- summary(model) %>%
@@ -37,13 +39,42 @@ plot_lmcoef <- function(model, input) {
   
 }
 
-#' Plot_lm
+#' Plotting function for linear models
 #'
-#' @description A utils function
+#' This function takes in a data frame, a linear model, and several inputs to create a plot.
+#' The input options are \code{xvar} for the independent variable, \code{yvar} for the dependent variable,
+#' \code{colvar} for the grouping variable (if applicable), and \code{plot_type} for the type of plot
+#' to be created ("model check" or "scatter").
 #'
-#' @return The return value, if any, from executing the utility.
-#' @import ggfortify
-#' @noRd
+#' If \code{colvar} is not specified or is set to "none", the grouping variable is set to "colvar"
+#' and all data points are colored the same. Otherwise, the grouping variable is set to the
+#' specified \code{colvar}.
+#'
+#' For "model check" plots, the function creates a multiplot of six plots, showing the distribution
+#' of residuals, normal Q-Q plot of residuals, scale-location plot, residuals vs. leverage plot,
+#' cook's distance plot, and residual vs. fitted plot.
+#'
+#' For "scatter" plots, the function creates a scatterplot of the data with the regression line overlaid.
+#' If a \code{colvar} is specified, the data points are colored by that variable. Additionally, the
+#' function adds error bars to the plot representing the standard error of the prediction for each data point.
+#'
+#' @param d A data.frame
+#' @param model A linear model object
+#' @param input A list containing several options for creating the plot. The options are:
+#' \describe{
+#' \item{xvar}{The independent variable}
+#' \item{yvar}{The dependent variable}
+#' \item{colvar}{The grouping variable (optional)}
+#' \item{plot_type}{The type of plot to be created ("model check" or "scatter")}
+#' }
+#'
+#' @return A ggplot object
+#' @import ggplot2
+#' @importFrom ggpubr ggscatter
+#' @importFrom ggfortify autoplot
+#' @importFrom ggpubr ggarrange
+#' @importFrom data.table data.table
+#' @export
 ggplot_lm <- function(d, model, input) {
   
   # Shape data
@@ -52,52 +83,58 @@ ggplot_lm <- function(d, model, input) {
   yvar <- input$yvar
   plot_type <- input$plot_type
   
-  if ("colvar" %in% names(input) && not(input$colvar == "")) {
-    
-    colvar <- input$colvar
-    local_d[, c("xvar", "yvar", "colvar") := .SD, 
-            .SDcols = c(xvar, yvar, colvar)]
-    col_var_present <- T
+  if (input$colvar == "" | input$colvar == "none") {
+    colvar <- "colvar"
+    local_d[, colvar := ""]
   } else  {
-    
-    local_d[, c("xvar", "yvar") := .SD, 
-            .SDcols = c(xvar, yvar)]
-    local_d[, colvar := as.factor(0)]
-    col_var_present <- F
+    colvar <- input$colvar
+
   }
-  
-  coef_table <- summary(model) %>%
-    coefficients %>%
-    data.table(., keep.rownames = T)
-  setnames(coef_table, c("variable", "estimate", "error", "t_val", "p_val"))
-  coef_table[, p_val_label := signif(p_val, 3)]
   
   # Select Plot
   
   if (plot_type == "model check") {
-    ggp <- autoplot(model, which = 1:6, ncol = 3, 
-                    label.size = 3, data = local_d,
-             colour = 'colvar')
-  } else if (plot_type == "linear") {
+    ggp_multiplot <- autoplot(model, which = 1:6, ncol = 3, 
+                     label.size = 3, data = local_d, colour = 'colvar') + 
+      theme_pubr(base_family = "Helvetica"
+      )
     
-    local_d[, pred_vals := fitted(model)]
-    ggp <- ggplot(local_d, 
-                   aes(x = xvar)) +
-      geom_point(aes(y = yvar, col = colvar), show.legend = col_var_present) +
-      geom_point(aes(y = pred_vals), col = "firebrick")
+    ggp <- ggarrange(plotlist = ggp_multiplot@plots)
+  } else if (plot_type == "scatter") {
+    local_d[, c("pred_vals", "se") := 
+        predict(model, newdata = .SD, se.fit = T) %$% 
+        .(fit, se.fit)]
+    local_d[, c("upper", "lower") := .(pred_vals + se, pred_vals - se)]
+    ggp <- ggpubr::ggscatter(local_d, x = xvar, yvar, color = colvar) +
+      geom_line(aes_string(x = xvar, y = "pred_vals", col = colvar)) +
+      geom_errorbar(aes_string(ymin = "lower", ymax = "upper"), width = 0.2)
+    
     
   }
-
+  ggp + 
+     theme_pubr(base_family = "Helvetica"
+                )
   return(ggp)
 }
 
-#' Plot_one_way
+#' Plot ANOVA or Kruskal-Wallis test results with optional post-hoc analysis
 #'
-#' @description A utils function
+#' This function produces a plot of the results of an ANOVA or Kruskal-Wallis 
+#' test, with optional post-hoc analysis. The function accepts a data frame 
+#' \code{d} and an input list \code{input} that contains information on the test
+#' to perform, the variables to use, and various plotting options. The function
+#' also accepts an optional argument \code{post_hoc} which, if provided, is a 
+#' list containing information on which post-hoc tests to perform and how to 
+#' adjust for multiple comparisons. If no post-hoc analysis is desired, this 
+#' argument can be left as the default value \code{NULL}.
 #'
-#' @return The return value, if any, from executing the utility.
-#' @importFrom ggpubr mean_sd
-#' @noRd
+#' @param d A data frame containing the data to plot
+#' @param input A list containing input options for the plot. See Details for more information.
+#' @param post_hoc An optional list containing information on which post-hoc tests to perform and how to adjust for multiple comparisons.
+#' @param ref.group An optional character value indicating the reference group for comparisons.
+#'
+#' @return A ggplot object containing the plot.
+#' @export
 plot_anova <- function(d, input,
                          post_hoc, 
                          ref.group = NULL) {
@@ -171,15 +208,22 @@ plot_anova <- function(d, input,
   return(ggp)
 }
 
-#' plotting_tools 
+#' Plot data for one-sample comparison test
 #'
-#' @description A utils function
+#' This function generates a plot to compare a single group to a reference value,
+#' using the data and parameters provided.
 #'
-#' @return The return value, if any, from executing the utility.
+#' @param d A data.frame or data.table object containing the data to plot.
+#' @param input A list object containing input parameters for the plot. Required 
+#' parameters include: treatment, variable, ref.group, plot_type, and colpal. 
+#' Optional parameters include: paired.
+#' @param test_out A list object containing the results of a statistical test.
+#' @return A ggplot object with the plotted data.
 #' @import ggpubr
-#' @importFrom ggpubr mean_sd mean_ci ggboxplot ggbarplot gghistogram
-#' @importFrom ggplot2 mean_se
-#' @noRd
+#' @importFrom data.table setorder
+#' @importFrom ggpubr ggbarplot ggboxplot ggpaired gghistogram stat_pvalue_manual
+#' theme_pubr
+#' @examples
 plot_one_comp_m <- function(d, 
                             input,
                             test_out) {
@@ -244,19 +288,22 @@ plot_one_comp_m <- function(d,
                          label = "p") 
       
   }
-  ggp <- ggp +
-    theme_pubr()
-  
   return(ggp)
 }
 
-#' plotting_tools 
+#' Generate exploration plots
 #'
-#' @description A utils function
+#' This function generates exploration plots based on the input data and the selected plot type.
 #'
-#' @return The return value, if any, from executing the utility.
-#' 
-#' @noRd
+#' @param d A data frame or data table containing the data to be plotted.
+#' @param input A named list containing the input parameters for the plot. Required input parameters are:
+#' \describe{
+#' \item{plot_type}{A character string specifying the type of plot to be generated. Allowed values are "histogram", "QQ", and "Correation".}
+#' \item{colpal}{A character string specifying the color palette to be used in the plot.}
+#' \item{treatment}{A character string specifying the name of the treatment variable in the data.}
+#' }
+#'
+#' @return A ggplot object containing the exploration plot.
 ggplot_explore <- function(d, input) {
   
   # Load vars
@@ -271,20 +318,24 @@ ggplot_explore <- function(d, input) {
     ggp <- ggplot_qq(d, treatment, colpal)
   } else if (plot_type == "Correation") {
    
-    ggp <- gg_corplot(d, treatment = treatment) 
+    ggp <- gg_corplot(d) 
   }
   
   return(ggp)
 }
 
-#' plotting_tools 
+#' Histogram plot
 #'
-#' @description A utils function
+#' This function takes a data table, a treatment variable and an optional color palette as inputs
+#' and produces a histogram plot using ggplot2 with overlaid normal density and vertical lines
+#' for the means of each numeric variable, grouped by the treatment variable.
 #'
-#' @return The return value, if any, from executing the utility.
-#' 
-#' @noRd
-
+#' @param d a data table
+#' @param treatment a character string representing the name of the treatment variable
+#' @param colpal an optional character string representing the name of the color palette to use (default is "jco")
+#'
+#' @return a ggplot object
+#' @export
 ggplot_hist <- function(d, treatment, colpal = "jco") {
   
   # Load vars
@@ -292,8 +343,6 @@ ggplot_hist <- function(d, treatment, colpal = "jco") {
   num_cols <- d[, .SD, .SDcols = is.numeric] %>% 
     colnames()
 
-  # Calculate nbins
-  
   # Reshape data
   if (treatment == "none") {
     
@@ -338,7 +387,13 @@ ggplot_hist <- function(d, treatment, colpal = "jco") {
   return(ggp)
 }
 
-gg_corplot <- function(d, treatment) {
+#' Generate a correlation plot using gg_corplot
+#'
+#' This function generates a correlation plot for a given data frame, using the \code{corrplot} package.
+#'
+#' @param d A data frame to generate the plot for.
+#' @return A corplot object
+gg_corplot <- function(d) {
   
   local_d <- copy(d)
   M <- cor(local_d[, .SD, .SDcols = is.numeric])
@@ -346,6 +401,7 @@ gg_corplot <- function(d, treatment) {
   
   return(outplot)
 }
+
 #' Create a QQ plot using ggplot
 #'
 #' @param d A data table containing the data to plot.
@@ -395,8 +451,35 @@ ggplot_qq <- function(d, treatment, colpal) {
   return(ggp)
 }
 
-#' Add pvalues
-
+#' Add p-values to a ggplot object
+#'
+#' This function adds p-values calculated from statistical tests to a ggplot 
+#' object. The tests can be either t-tests, Wilcoxon rank sum tests, 
+#' Kruskal-Wallis tests or Tukey's HSD tests. P-values can be displayed either 
+#' as significance stars or as formatted numbers. Tests can be run either between
+#'  or within categories.
+#'
+#' @param ggp a ggplot object.
+#' @param test_type a character string indicating the type of test to be run. 
+#' Valid options are "t.test" (default), "wilcox", "kwallis", and "tukey_hsd".
+#' @param xvar a character string indicating the name of the x variable.
+#' @param colvar a character string indicating the name of the variable to be 
+#' used for color coding.
+#' @param pval_format a character vector of length 2 indicating how p-values 
+#' should be displayed. The first element indicates the format for 
+#' non-significant p-values and the second element indicates the format for 
+#' significant p-values. Valid options are "p.adj.format" (default) and "p.adj.signif".
+#' @param betweet_type a character string indicating whether the test should 
+#' be run between or within categories. Valid options are "within" (default) and "between".
+#' @param p_adjust a character string indicating the method used for p-value 
+#' adjustment. Valid options are any method accepted by the p.adjust function, 
+#' such as "bonferroni", "holm", "BH", etc. Default is "bonferroni".
+#' @param test_paired a logical value indicating whether the test should be run 
+#' as a paired test or not. Default is FALSE.
+#' @param dodge a numeric value indicating the amount of dodging to use for 
+#' overlapping labels. Default is 0.8.
+#' @return a ggplot object with added p-values.
+#' @export
 add_pvals <- function(ggp,
                       test_type = "t.test", 
                       xvar, 

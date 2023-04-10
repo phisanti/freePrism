@@ -69,7 +69,7 @@ get_groups <- function(d, colx) {
 #'
 #' @noRd
 
-download_plot <- function(figure, label) {
+download_plot <- function(figure, label, input) {
   
   plot_name <- paste0(label, "_", Sys.Date() ,".pdf")
   downloadHandler(
@@ -77,8 +77,8 @@ download_plot <- function(figure, label) {
     content = function(file) {
       ggsave(plot = figure, 
              filename = file, 
-             width = 12, 
-             height = 12, 
+             width = input$dl_width, 
+             height = input$dl_height, 
              dpi = 300, 
              units = "cm")
     }

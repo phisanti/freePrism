@@ -1,21 +1,25 @@
-#' @title UI Utils 
+#' Color palettes
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This is a character vector containing the names of several color palettes.
 #'
-#' @noRd
-#' @export
+#' @return A character vector of color palette names.
 colpalettes <- c("aaas", "d3", "flauti", "frontiers", "futurama",
                  "gsea", "igv", "jama", "jco", "lancet", "material",
                  "nejm", "npg", "uchicago", "ucscgb")
 
-#' @title UI Utils 
+#' Column input
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This function creates a column containing a select input in a shiny app.
 #'
-#' @noRd
-#' @export
+#' @param width An integer specifying the width of the column.
+#' @param id A string specifying the ID module.
+#' @param label A string specifying the label for the select input.
+#' @param choices A vector of strings specifying the choices of the select input.
+#' @param ... Additional arguments passed to shiny::selectInput().
+#'
+#' @return A column containing a select input.
+#'
+#' @import shiny
 
 colinput <- function(width, id, label, choices, ...) {
   shiny::column(width,
@@ -24,13 +28,22 @@ colinput <- function(width, id, label, choices, ...) {
                                    choices = choices, ...))
   
 }
-#' @title UI Utils 
+#' Common input
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This function creates the common inputs for each tab. It provides statistical
+#' as well as plotting commands.
 #'
-#' @noRd
-#' @export
+#' @param panel A string indicating whether the panel is a "stats" panel or a 
+#' "plotting" panel.
+#' @param modns A string to namespace inputs to avoid id conflicts when using 
+#' multiple instances of the same module.
+#'
+#' @return A tag list containing a select input for the treatment and a select 
+#' input for the target variable if the panel is "stats". Otherwise, it returns 
+#' a numeric input for the download image width and a numeric input for the 
+#' download image height if the panel is "plotting".
+#'
+#' @import shiny
 
 common_input <- function(panel, modns) {
   if (panel == "stats") {
@@ -47,22 +60,31 @@ common_input <- function(panel, modns) {
                                         "Run Analysis")))
     )
   } else if (panel == "plotting") {
-    common_input <- shiny::fluidRow(shiny::column(5,
+    common_input <- tagList(
+      shiny::fluidRow(
+        shiny::column(6,
+                    shiny::numericInput(modns("dl_width"), value = 16,
+                                        "Download image width (cm)")),
+      shiny::column(6,
+                    shiny::numericInput(modns("dl_height"), value = 16, 
+                                        "Download image height (cm)"))),
+      shiny::fluidRow(shiny::column(5,
     shiny::actionButton(modns("plot_analysis"), 
-                        "Plot Analysis")))
+                        "Plot Analysis"))
+    ))
   }
   return(common_input)
   
 }
 
-
-#' @title UI Utils 
+#' Explore UI
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This function generates the user interface for the Explore tab of a Shiny application.
 #'
-#' @noRd
-#' @export
+#' @param id A character string specifying the namespace for the UI elements.
+#' @param panel A character string specifying the panel to display in the UI ("stats" or "plotting").
+#'
+#' @return A Shiny UI object.
 explore_ui <- function(id, panel) {
   modns <- NS(id)
   if (panel == "stats") {
@@ -79,13 +101,14 @@ explore_ui <- function(id, panel) {
   }
   return(sidebar)
 }
-#' @title UI Utils 
+#' Mean comparison UI
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This function generates the user interface for the Explore tab of a Shiny application.
 #'
-#' @noRd
-#' @export
+#' @param id A character string specifying the namespace for the UI elements.
+#' @param panel A character string specifying the panel to display in the UI ("stats" or "plotting").
+#'
+#' @return A Shiny UI object.
 compmeans_ui <- function(id, panel) {
   
   modns <- NS(id)
@@ -127,13 +150,14 @@ compmeans_ui <- function(id, panel) {
   return(sidebar)
 }
 
-#' @title UI Utils 
+#' ANOVA One-way UI
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This function generates the user interface for the ANOVA One-way tab of a Shiny application.
 #'
-#' @noRd
-#' @export
+#' @param id A character string specifying the namespace for the UI elements.
+#' @param panel A character string specifying the panel to display in the UI ("stats" or "plotting").
+#'
+#' @return A Shiny UI object.
 oneway_ui <- function(id, panel) {
   
   modns <- NS(id)
@@ -175,13 +199,15 @@ oneway_ui <- function(id, panel) {
   
   return(sidebar)
 }
-#' @title UI Utils 
+
+#' ANOVA Two-way UI
 #'
-#' @description These are list with different sections of the UI
-#' @return UI shiny elements.
+#' This function generates the user interface for the ANOVA Two-way tab of a Shiny application.
 #'
-#' @noRd
-#' @export
+#' @param id A character string specifying the namespace for the UI elements.
+#' @param panel A character string specifying the panel to display in the UI ("stats" or "plotting").
+#'
+#' @return A Shiny UI object.
 twoway_ui <- function(id, panel) {
   
   modns <- NS(id)
@@ -242,15 +268,17 @@ linreg_ui <- function(id, panel) {
       common_input(panel, modns))
   } else if (panel == "plotting") {
     sidebar <- tagList(shiny::fluidRow(
-      colinput(5, modns("plot_type"), "Select a Plot type:",
-               c("model check", "linear")),
-      colinput(5, modns("xvar"), "Select the X variable:",
+      colinput(6, modns("plot_type"), "Select a Plot type:",
+               c("model check", "scatter")),
+      colinput(6, modns("xvar"), "Select the X variable:",
+               c(""))),
+      shiny::fluidRow(
+      colinput(6, modns("yvar"), "Select the Y variable:",
                c("")),
-      colinput(5, modns("yvar"), "Select the Y variable:",
-               c("")),
-      colinput(5, modns("colvar"), "Select the colouring variable:",
-               c("")),
-      colinput(5, modns("colpal"), "Select colour palette:",
+      colinput(6, modns("colvar"), "Select the colouring variable:",
+               c(""))),
+      shiny::fluidRow(
+      colinput(6, modns("colpal"), "Select colour palette:",
                colpalettes)
     ),
     common_input(panel, modns))
@@ -259,13 +287,12 @@ linreg_ui <- function(id, panel) {
   return(sidebar)
 }
 
-#' @title UI text 
+#' Mainpanel Text User Interface
 #'
-#' @description These are blocks of text for the UI. The reasoning to place them
-#' here is to release space from the main app_ui functionality.
-#' @return UI shiny elements.
-#'
-#' @noRd
+#' This function contains the text for the four types of analysis tools in the 
+#' shiny app.
+#' 
+#' @return A character vector with the text for each section.
 #' @export
 mainpanel_txt_ui <- 
   list(compare_means = 

@@ -70,7 +70,7 @@ twoway_module <- function(id, d) {
 
       reac_twowayplot()[[1]]
     })
-    output$plot_dl <- download_plot(reac_twowayplot()[[1]], id)
+    output$plot_dl <- download_plot(reac_twowayplot()[[1]], id, input)
     
     })
   }

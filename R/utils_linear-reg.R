@@ -46,28 +46,33 @@ linreg_module <- function(id, d) {
       
     })
     output$model <- renderUI(HTML({
-      req(input$treatment != "" & input$treatment != input$variable)
+      req(input$treatment != "none" & input$treatment != input$variable)
 
       react_lm()[[2]]
       })
       )
-    output$coefs_plot <-renderPlot(react_plotcoef()[[1]])
-    output$pred_plot <- renderPlot(react_plot(), height = 800)
-    output$plot_dl <- download_plot(react_plot(), id)
+    output$pred_plot <- renderPlot({
+      req(input$treatment != "none" & input$treatment != input$variable)
+      
+      react_plot()
+      }#, height = 800
+      )
     
+    output$coefs_plot <-renderPlot(react_plotcoef()[[1]])
+    output$plot_dl <- download_plot(react_plot(), "linreg", input)
     })
   
   }
 
-#' linear-reg 
+#' Escapes special characters for LaTeX output
 #'
-#' @description A utils function
+#' This function takes a character string as input and escapes special characters
+#' that are used in LaTeX documents such as: backslash, ampersand, percent, hash,
+#' underscore, curly braces, tilde, and circumflex.
 #'
-#' @return The return value, if any, from executing the utility.
-#'
-#' @import stargazer
-#' @noRd
-
+#' @param s a character string to be escaped for LaTeX output
+#' @return a character string with all special characters escaped for LaTeX output
+#' @export
 escape_for_latex <- function(s) {
   if (!is.character(s)) s_out <- as.character(s)
   else s_out <- s
@@ -83,13 +88,26 @@ escape_for_latex <- function(s) {
   return(s_out)
 }
 
-#' linear-reg 
+#' reg_test
 #'
-#' @description A utils function
+#' A function to perform a regression analysis on a given dataframe, based on user-specified input parameters.
 #'
-#' @return The return value, if any, from executing the utility.
+#' @param d A dataframe containing the data to be analyzed.
+#' @param input A list containing the following user-specified input parameters:
+#' \describe{
+#' \item{variable}{The dependent variable for the regression analysis.}
+#' \item{treatment}{The independent variable(s) for the regression analysis. Note that this can be more than one.}
+#' \item{cilevel}{The level of confidence for the confidence interval calculation.}
+#' \item{allow_interaction}{A boolean value indicating whether to include interaction terms in the model.}
+#' }
 #'
-#' @noRd
+#' @return A list containing the following elements:
+#' \describe{
+#' \item{model}{The regression model object.}
+#' \item{htmlout}{The regression summary in HTML format, as produced by the stargazer package.}
+#' \item{report}{The regression summary in text format, as produced by the reportr package.}
+#' }
+#' @export
 reg_test <- function(d, input) {
   
   if(!is.data.frame(d)) stop("df needs to be a dataframe")
@@ -116,14 +134,11 @@ reg_test <- function(d, input) {
                          ci = TRUE,
                          ci.level = ci_level,
                          model.names = FALSE, 
-                         #p = p_vals, 
-                         #t = t_stats,
                          single.row=TRUE
     ))
-  out_report <- c("xxx", "zzz")
   out_report <- reportr(model)
   out <- list(model = model,
               htmlout = htmlout,
               report = out_report)
   return(out)
-}  
+}

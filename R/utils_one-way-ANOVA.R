@@ -67,7 +67,7 @@ oneway_module <- function(id, d) {
       req(input$treatment != "" & input$treatment != input$variable)
       react_plot()[[1]]
     })
-    output$plot_dl <- download_plot(react_plot()[[1]], id)
+    output$plot_dl <- download_plot(react_plot()[[1]], id, input)
     
     })
   }

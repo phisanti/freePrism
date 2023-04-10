@@ -10,7 +10,7 @@
 
 app_server <- function(input, output, session) {
   # Set them
-  theme_set(theme_pubr(base_size = 20, base_family = "Arial"))
+  theme_set(theme_pubr(base_size = 20, base_family = "Helvetica"))
   
   ## Create reactive objects
   
