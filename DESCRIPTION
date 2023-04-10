@@ -1,6 +1,6 @@
 Package: freePrism
 Title: Free frism
-Version: 0.0.0.9000
+Version: 1.0.0.0000
 Authors@R: person('Santiago', 'Cano-Muniz', email = 'cms206@cam.ac.uk', role = c('cre', 'aut'))
 Description: A webapp tool aimed to provide statisical analysis tools
   simiar to prism by Graphpad.

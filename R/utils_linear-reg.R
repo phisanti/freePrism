@@ -90,7 +90,7 @@ escape_for_latex <- function(s) {
 
 #' reg_test
 #'
-#' A function to perform a regression analysis on a given dataframe, based on user-specified input parameters.
+#' A function to perform a regression analysis on a given data.frame, based on user-specified input parameters.
 #'
 #' @param d A dataframe containing the data to be analyzed.
 #' @param input A list containing the following user-specified input parameters:

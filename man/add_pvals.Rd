@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_plotting_tools.R
 \name{add_pvals}
 \alias{add_pvals}
-\title{Add pvalues}
+\title{Add p-values to a ggplot object}
 \usage{
 add_pvals(
   ggp,
@@ -16,6 +16,42 @@ add_pvals(
   dodge = 0.8
 )
 }
+\arguments{
+\item{ggp}{a ggplot object.}
+
+\item{test_type}{a character string indicating the type of test to be run. 
+Valid options are "t.test" (default), "wilcox", "kwallis", and "tukey_hsd".}
+
+\item{xvar}{a character string indicating the name of the x variable.}
+
+\item{colvar}{a character string indicating the name of the variable to be 
+used for color coding.}
+
+\item{pval_format}{a character vector of length 2 indicating how p-values 
+should be displayed. The first element indicates the format for 
+non-significant p-values and the second element indicates the format for 
+significant p-values. Valid options are "p.adj.format" (default) and "p.adj.signif".}
+
+\item{betweet_type}{a character string indicating whether the test should 
+be run between or within categories. Valid options are "within" (default) and "between".}
+
+\item{p_adjust}{a character string indicating the method used for p-value 
+adjustment. Valid options are any method accepted by the p.adjust function, 
+such as "bonferroni", "holm", "BH", etc. Default is "bonferroni".}
+
+\item{test_paired}{a logical value indicating whether the test should be run 
+as a paired test or not. Default is FALSE.}
+
+\item{dodge}{a numeric value indicating the amount of dodging to use for 
+overlapping labels. Default is 0.8.}
+}
+\value{
+a ggplot object with added p-values.
+}
 \description{
-Add pvalues
+This function adds p-values calculated from statistical tests to a ggplot 
+object. The tests can be either t-tests, Wilcoxon rank sum tests, 
+Kruskal-Wallis tests or Tukey's HSD tests. P-values can be displayed either 
+as significance stars or as formatted numbers. Tests can be run either between
+ or within categories.
 }

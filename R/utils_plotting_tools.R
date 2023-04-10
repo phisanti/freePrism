@@ -70,8 +70,8 @@ plot_lmcoef <- function(model, input) {
 #'
 #' @return A ggplot object
 #' @import ggplot2
+#' @import ggfortify
 #' @importFrom ggpubr ggscatter
-#' @importFrom ggfortify autoplot
 #' @importFrom ggpubr ggarrange
 #' @importFrom data.table data.table
 #' @export
