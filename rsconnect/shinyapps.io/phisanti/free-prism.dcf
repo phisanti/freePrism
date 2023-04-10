@@ -4,11 +4,11 @@ username:
 account: phisanti
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 8811617
-bundleId: 7072549
+appId: 8811826
+bundleId: 7072574
 url: https://phisanti.shinyapps.io/free-prism/
-when: 1681160864.21668
-lastSyncTime: 1681160864.21671
+when: 1681161239.73877
+lastSyncTime: 1681161239.73879
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .here|.Rbuildignore|.RData|.Rprofile|CODE_OF_CONDUCT.md|DESCRIPTION|dev/01_start.R|dev/02_dev.R|dev/03_deploy.R|dev/run_dev.R|inst/app/www/custom.css|inst/app/www/custom.sass|inst/app/www/favicon.ico|inst/golem-config.yml|inst/WORDLIST|LICENSE|LICENSE.md|NAMESPACE|NEWS.md|project_diary.html|project_diary.md|README.md|README.Rmd
+ignoredFiles: .here|.Rbuildignore|.RData|.Rprofile|CODE_OF_CONDUCT.md|DESCRIPTION|dev/01_start.R|dev/02_dev.R|dev/03_deploy.R|dev/run_dev.R|inst/app/www/custom.css|inst/app/www/custom.sass|inst/app/www/favicon.ico|inst/golem-config.yml|inst/WORDLIST|LICENSE|LICENSE.md|NAMESPACE|NEWS.md|project_diary.html|project_diary.md|README.md|README.Rmd|man|R
