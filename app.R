@@ -6,10 +6,28 @@
 #
 #    http://shiny.rstudio.com/
 #
+
 library(remotes)
-remotes::install_github('phisanti/freePrism')
+library(shinyvalidate)
+library(shinythemes)
+library(shiny)
+library(data.table)
+library(stargazer)
+library(ggfortify)
+library(rstatix)
+library(ggpubr)
+library(golem)
+library(glue)
+library(DT)
+
+# install freePrism if required
+if (magrittr::not("freePrism" %in% rownames(installed.packages()))) {
+  remotes::install_github('phisanti/freePrism')
+}
 library(freePrism)
+
+# Run aoo
 shiny::shinyApp(
-  ui = app_ui,
-  server = app_server
+  ui = freePrism::app_ui,
+  server = freePrism::app_server
 )

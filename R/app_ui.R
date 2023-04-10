@@ -6,10 +6,8 @@
 #' @importFrom shiny fluidPage sidebarLayout sidebarPanel radioButtons helpText 
 #' conditionalPanel textInput selectInput actionButton mainPanel
 #' @importFrom DT DTOutput
-#' @export
 #' @noRd
-
-library(shiny)
+#' @export
 
 app_ui <- function(request) {
   golem_add_external_resources()
