@@ -14,20 +14,19 @@ library(shiny)
 library(data.table)
 library(stargazer)
 library(ggfortify)
+library(remotes)
 library(rstatix)
 library(ggpubr)
 library(golem)
 library(glue)
 library(DT)
-
-# install freePrism if required
-if (magrittr::not("freePrism" %in% rownames(installed.packages()))) {
-  remotes::install_github('phisanti/freePrism')
-}
 library(freePrism)
 
-# Run aoo
+# Check package app is installed with all functionalities
+print(lsf.str("package:freePrism"))
+
+# Run app
 shiny::shinyApp(
-  ui = freePrism::app_ui,
+  ui = app_ui,
   server = freePrism::app_server
 )
