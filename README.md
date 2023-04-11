@@ -14,7 +14,7 @@ comparion, ANOVA, and linear models. You can easily upload your data and
 then get you p-values. Then, download the plot and modify it as required
 for your publication!
 
-## Installation
+## Local Installation
 
 You can install the development version of freePrism from this
 repository:
@@ -22,3 +22,35 @@ repository:
 ``` r
 remotes::install_github("https://github.com/phisanti/freePrism")
 ```
+
+## Use
+
+Once the package is installed, to run the app locally simply use the
+command:
+
+``` r
+freePrism::run_app()
+```
+
+## Usage
+
+To begin using freePrism, you need to upload your own data using the
+side menu. Once your data is uploaded, you can choose which statistical
+test you would like to perform by selecting one of the available tabs.
+
+Each tab corresponds to a different statistical test, and you can input
+your desired commands and arguments for each test in the side menu. Once
+you have entered your inputs, click the ‘Run Analysis’ button to execute
+the test.
+
+After running the test, the results will be displayed on the main page
+along with your data. Additionally, you have the option to plot the data
+and download the generated plots in PDF format for further editing.
+
+## Feedback
+
+If you would like to suggest any new functionality or if you notice any
+bug, do not hesitate to submit an issue. This tool is still an a
+experimental level.
+
+Thank you for using freePrism!
