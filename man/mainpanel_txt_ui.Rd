@@ -5,7 +5,7 @@
 \alias{mainpanel_txt_ui}
 \title{Mainpanel Text User Interface}
 \format{
-An object of class \code{list} of length 4.
+An object of class \code{list} of length 6.
 }
 \usage{
 mainpanel_txt_ui

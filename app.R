@@ -22,7 +22,7 @@ library(glue)
 library(DT)
 library(freePrism)
 
-# Check package app is installed with all functionalities
+# Check package app is installed with all functions
 print(lsf.str("package:freePrism"))
 
 # Run app
