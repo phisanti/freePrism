@@ -99,6 +99,8 @@ app_ui <- function(request) {
                                    p(mainpanel_txt_ui$howto$intro[2]),
                                    p(mainpanel_txt_ui$howto$intro[3]),
                                    p(mainpanel_txt_ui$howto$intro[4]),
+                                   p("If you encounter any issues, please refer to the Github repository or submit an issue at:", 
+                                     a("phisanti/freePrism", href="https://github.com/phisanti/freePrism"), "."),
                                    p(mainpanel_txt_ui$howto$intro[5])
                                    ),
                     shiny::tabPanel("Exploratory Analysis", 
